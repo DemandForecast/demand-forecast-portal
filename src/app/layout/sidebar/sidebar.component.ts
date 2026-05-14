@@ -290,61 +290,18 @@ export class MainsectionComponent implements OnInit {
     if (this.userRole) {
       const allNavItems = [
         { icon: 'pi pi-th-large', title: 'Dashboard', routerLink: '', id: '' },
-
-        {
-          icon: 'pi pi-shopping-cart', // 🛒 Merchant Orders
-          title: 'Merchant Orders',
-          routerLink: '/merchant-orders',
-          id: 'DTO5226',
+    {
+          icon: 'pi pi-file-excel',
+          title: 'Products',
+          routerLink: '/products',
+          // id: 'DTO5210',
         },
 
-        {
-          icon: 'pi pi-box', // 📦 Reseller Orders
-          title: 'Reseller Orders',
-          routerLink: '/reseller-orders',
-          id: 'DTO5225',
-        },
-
-        {
-          icon: 'pi pi-upload', // ⬆️ Order to Admin
-          title: 'Order To Admin',
-          routerLink: '/order-to-admin',
-          id: 'DTO5228',
-        },
-
-        {
-          icon: 'pi pi-users', // 👥 Customer Orders
-          title: 'Customer Orders',
-          routerLink: '/customer-orders',
-          id: 'DTO5224',
-        },
-
-        {
-          icon: 'pi pi-send', // 📩 Order to Merchant
-          title: 'Order To Merchant',
-          routerLink: '/order-to-merchant',
-          id: 'DTO5227',
-        },
-
-        {
-          icon: 'pi pi-briefcase', // 💼 Merchants
-          title: 'Merchants',
-          routerLink: '/merchants',
-          id: 'DTO5222',
-        },
-
-        {
-          icon: 'pi pi-id-card', // 🪪 Resellers
-          title: 'Resellers',
-          routerLink: '/resellers',
-          id: 'DTO5230',
-        },
-
-        {
-          icon: 'pi pi-user', // 👤 Customers
-          title: 'Customers',
-          routerLink: '/customers',
-          id: 'DTO5223',
+          {
+          icon: 'pi pi-file-excel',
+          title: 'Model Status',
+          routerLink: '/model-status',
+          // id: 'DTO5210',
         },
 
         {
@@ -361,7 +318,7 @@ export class MainsectionComponent implements OnInit {
         },
 
         // Commented out items (keeping them in code but not showing in UI)
-        /* 
+        /*
         { icon: 'pi pi-users', title: 'Users', routerLink: '/user', id: 'DTO5212' },
         { icon: 'pi pi-sitemap', title: 'Branch', routerLink: '/branch', id: 'DTO5234' },
         { icon: 'pi pi-key', title: 'Role', routerLink: '/role', id: 'DTO5214' },

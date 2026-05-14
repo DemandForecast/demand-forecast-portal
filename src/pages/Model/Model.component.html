@@ -1,0 +1,237 @@
+<div class="container mx-auto px-4">
+  <!-- Header Section -->
+  <div class="flex flex-col xl:flex-row items-center xl:items-start gap-4 justify-between mb-8">
+    <div>
+      <div class="text-3xl leading-8 text-color font-bold">Model Status Dashboard</div>
+      <div class="text-sm text-color-secondary mt-2">Real-time monitoring of AI models and systems</div>
+    </div>
+    <p-button
+      icon="pi pi-refresh"
+      label="Refresh"
+      (click)="refreshData()"
+      severity="secondary"
+      [outlined]="true"
+    />
+  </div>
+
+  <!-- Statistics Cards Row -->
+  <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
+    <!-- Total Models Card -->
+    <div class="bg-surface-0 dark:bg-surface-900 rounded-xl p-6 border border-surface shadow-sm">
+      <div class="flex items-center justify-between mb-3">
+        <div class="text-color-secondary text-sm font-medium">Total Models</div>
+        <div class="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
+          <i class="pi pi-box text-blue-600 dark:text-blue-400 text-xl"></i>
+        </div>
+      </div>
+      <div class="text-3xl font-bold text-color">{{ totalModels }}</div>
+      <div class="text-xs text-color-secondary mt-2">Across all categories</div>
+    </div>
+
+    <!-- Active Models Card -->
+    <div class="bg-surface-0 dark:bg-surface-900 rounded-xl p-6 border border-surface shadow-sm">
+      <div class="flex items-center justify-between mb-3">
+        <div class="text-color-secondary text-sm font-medium">Active Models</div>
+        <div class="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center">
+          <i class="pi pi-check-circle text-green-600 dark:text-green-400 text-xl"></i>
+        </div>
+      </div>
+      <div class="text-3xl font-bold text-color">{{ activeModels }}</div>
+      <div class="text-xs text-color-secondary mt-2">Currently operational</div>
+    </div>
+
+    <!-- Average Uptime Card -->
+    <div class="bg-surface-0 dark:bg-surface-900 rounded-xl p-6 border border-surface shadow-sm">
+      <div class="flex items-center justify-between mb-3">
+        <div class="text-color-secondary text-sm font-medium">Avg Uptime</div>
+        <div class="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-900 flex items-center justify-center">
+          <i class="pi pi-clock text-purple-600 dark:text-purple-400 text-xl"></i>
+        </div>
+      </div>
+      <div class="text-3xl font-bold text-color">{{ averageUptime.toFixed(1) }}%</div>
+      <div class="text-xs text-color-secondary mt-2">System reliability</div>
+    </div>
+
+    <!-- Total Requests Card -->
+    <div class="bg-surface-0 dark:bg-surface-900 rounded-xl p-6 border border-surface shadow-sm">
+      <div class="flex items-center justify-between mb-3">
+        <div class="text-color-secondary text-sm font-medium">Total Requests</div>
+        <div class="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-900 flex items-center justify-center">
+          <i class="pi pi-arrow-right-arrow-left text-orange-600 dark:text-orange-400 text-xl"></i>
+        </div>
+      </div>
+      <div class="text-3xl font-bold text-color">{{ formatNumber(totalRequests) }}</div>
+      <div class="text-xs text-color-secondary mt-2">Requests per hour</div>
+    </div>
+  </div>
+
+  <!-- Search Bar -->
+  <div class="mb-6">
+    <p-iconfield class="w-full md:w-96">
+      <p-inputicon class="pi pi-search"></p-inputicon>
+      <input
+        pInputText
+        type="text"
+        (input)="onSearch($event)"
+        placeholder="Search models by name, category, or description..."
+        class="w-full p-inputtext"
+      />
+    </p-iconfield>
+  </div>
+
+  <!-- Models Grid -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+    <div
+      *ngFor="let model of filteredModels"
+      class="bg-surface-0 dark:bg-surface-900 rounded-xl border border-surface shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden"
+    >
+      <!-- Card Header with Color Bar -->
+      <div class="h-2" [style.background-color]="model.color"></div>
+
+      <div class="p-6">
+        <!-- Model Header -->
+        <div class="flex items-start justify-between mb-4">
+          <div class="flex items-center gap-3">
+            <div
+              class="w-12 h-12 rounded-lg flex items-center justify-center text-white text-xl"
+              [style.background-color]="model.color"
+            >
+              <i [class]="'pi ' + model.icon"></i>
+            </div>
+            <div>
+              <h3 class="text-lg font-bold text-color">{{ model.name }}</h3>
+              <div class="text-sm text-color-secondary">{{ model.version }}</div>
+            </div>
+          </div>
+          <p-tag
+            [value]="getStatusLabel(model.status)"
+           
+          ></p-tag>
+        </div>
+
+        <!-- Description -->
+        <p class="text-sm text-color-secondary mb-4 line-clamp-2">
+          {{ model.description }}
+        </p>
+
+        <!-- Category Badge -->
+        <div class="mb-4">
+          <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-surface-100 dark:bg-surface-800 text-color">
+            <i class="pi pi-tag text-xs mr-1"></i>
+            {{ model.category }}
+          </span>
+        </div>
+
+        <!-- Metrics Grid -->
+        <div class="grid grid-cols-2 gap-4 mb-4">
+          <!-- Accuracy -->
+          <div>
+            <div class="text-xs text-color-secondary mb-1 font-medium">Accuracy</div>
+            <div class="flex items-center gap-2">
+              <div
+                class="text-lg font-bold"
+                [style.color]="getAccuracyColor(model.accuracy)"
+              >
+                {{ model.accuracy }}%
+              </div>
+            </div>
+            <p-progressBar
+              [value]="model.accuracy"
+              [showValue]="false"
+              [style]="{'height': '6px', 'margin-top': '4px'}"
+              [color]="getAccuracyColor(model.accuracy)"
+            ></p-progressBar>
+          </div>
+
+          <!-- Uptime -->
+          <div>
+            <div class="text-xs text-color-secondary mb-1 font-medium">Uptime</div>
+            <div class="flex items-center gap-2">
+              <div
+                class="text-lg font-bold"
+                [style.color]="getUptimeColor(model.uptime)"
+              >
+                {{ model.uptime }}%
+              </div>
+            </div>
+            <p-progressBar
+              [value]="model.uptime"
+              [showValue]="false"
+              [style]="{'height': '6px', 'margin-top': '4px'}"
+              [color]="getUptimeColor(model.uptime)"
+            ></p-progressBar>
+          </div>
+        </div>
+
+        <!-- Performance Metrics -->
+        <div class="border-t border-surface pt-4 space-y-3">
+          <!-- Requests per Hour -->
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <i class="pi pi-arrow-right-arrow-left text-color-secondary text-sm"></i>
+              <span class="text-sm text-color-secondary">Requests/hr</span>
+            </div>
+            <span class="text-sm font-semibold text-color">{{ formatNumber(model.requestsPerHour) }}</span>
+          </div>
+
+          <!-- Response Time -->
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <i class="pi pi-bolt text-color-secondary text-sm"></i>
+              <span class="text-sm text-color-secondary">Response Time</span>
+            </div>
+            <span class="text-sm font-semibold text-color">{{ model.metrics.responseTime }}ms</span>
+          </div>
+
+          <!-- Success Rate -->
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <i class="pi pi-check text-color-secondary text-sm"></i>
+              <span class="text-sm text-color-secondary">Success Rate</span>
+            </div>
+            <span class="text-sm font-semibold text-color">{{ model.metrics.successRate }}%</span>
+          </div>
+
+          <!-- Error Rate -->
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <i class="pi pi-times-circle text-color-secondary text-sm"></i>
+              <span class="text-sm text-color-secondary">Error Rate</span>
+            </div>
+            <span class="text-sm font-semibold text-color">{{ model.metrics.errorRate }}%</span>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="border-t border-surface mt-4 pt-4">
+          <div class="flex items-center justify-between text-xs text-color-secondary">
+            <div class="flex items-center gap-1">
+              <i class="pi pi-clock"></i>
+              <span>Updated: {{ model.lastUpdated }}</span>
+            </div>
+            <p-button
+              icon="pi pi-eye"
+              [text]="true"
+              size="small"
+              severity="secondary"
+              pTooltip="View Details"
+              tooltipPosition="top"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <div
+    *ngIf="filteredModels.length === 0"
+    class="flex flex-col items-center justify-center py-16"
+  >
+    <i class="pi pi-search text-6xl text-surface-400 mb-4"></i>
+    <h3 class="text-xl font-semibold text-color mb-2">No models found</h3>
+    <p class="text-color-secondary text-center max-w-md">
+      No models match your search criteria. Try adjusting your search terms.
+    </p>
+  </div>
+</div>

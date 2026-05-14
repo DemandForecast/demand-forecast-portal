@@ -12,6 +12,7 @@ import { SupplierComponent } from '../pages/Supplier/Supplier.component';
 import { ReportComponent } from '../pages/Report/Report.component';
 import { OrganizationComponent } from '../pages/Organization/Organization.component';
 import { ProductComponent } from '../pages/Products/Product.component';
+import { ModelComponent } from '../pages/Model/Model.component';
 
 export const routes: Routes = [
   {
@@ -40,6 +41,13 @@ export const routes: Routes = [
       {
         path: 'products',
         component: ProductComponent,
+        canActivate: [AuthGuard],
+        data: { requiredRoles: 'DTO5214' },
+      },
+
+           {
+        path: 'model-status',
+        component: ModelComponent,
         canActivate: [AuthGuard],
         data: { requiredRoles: 'DTO5214' },
       },

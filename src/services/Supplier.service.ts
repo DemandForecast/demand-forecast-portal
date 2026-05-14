@@ -10,7 +10,7 @@ type EntityArrayResponseType = HttpResponse<SupplierDto[]>;
 // @ts-ignore
 @Injectable()
 export class SupplierService {
-  resourceUrl = environment.SupplierUrl;
+  resourceUrl = environment.OrganizeUrl;
 
   headers = {
     AuthToken:

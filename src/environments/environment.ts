@@ -1,11 +1,10 @@
 export const environment = {
   production: false,
-  serverUrl: 'https://imo-user-mgt.onrender.com/User-Mgt/api',
-  SupplierUrl: 'https://imo-mgt-be.onrender.com/Suppliers/api',
+  serverUrl: 'http://127.0.0.1:8080/User-Mgt/api',
   ReportUrl: 'http://127.0.0.1:8886/Reports/api',
-   OrganizeUrl: 'http://127.0.0.1:8888/Organizations/api',
- InventoryUrl: 'http://127.0.0.1:8882/Inventory/api',
- 
+  OrganizeUrl: 'http://127.0.0.1:8888/Organizations/api',
+ InventoryUrl: 'http://127.0.0.1:8888/DemandFlow-Service/api',
+
   LogoLight: '',
   LogoDark: 'https://i.postimg.cc/9f5qsBh6/images.jpg',
   WORKSPACEID: 'WS680',
@@ -14,7 +13,7 @@ export const environment = {
     clientId: '56bSrJyNAAcsE7Hfs88lBH3BEXYesuwA',
     authorizationParams: {
       // audience: 'https://h-pos.us.auth0.com/api/v2/',
-      redirect_uri: 'https://imo-mgt-fe.onrender.com',
+      redirect_uri: 'http://localhost:4200/',
     },
   },
 };

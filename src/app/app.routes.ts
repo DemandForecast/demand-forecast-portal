@@ -11,6 +11,7 @@ import { SupplierComponent } from '../pages/Supplier/Supplier.component';
 
 import { ReportComponent } from '../pages/Report/Report.component';
 import { OrganizationComponent } from '../pages/Organization/Organization.component';
+import { ProductComponent } from '../pages/Products/Product.component';
 
 export const routes: Routes = [
   {
@@ -36,7 +37,12 @@ export const routes: Routes = [
         canActivate: [AuthGuard],
         data: { requiredRoles: 'DTO5214' },
       },
-
+      {
+        path: 'products',
+        component: ProductComponent,
+        canActivate: [AuthGuard],
+        data: { requiredRoles: 'DTO5214' },
+      },
 
       {
         path: 'report',

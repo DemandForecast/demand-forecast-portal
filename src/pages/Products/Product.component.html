@@ -1,0 +1,674 @@
+<p-toast />
+<p-confirmdialog #cd>
+  <ng-template
+    #headless
+    let-message
+    let-onAccept="onAccept"
+    let-onReject="onReject"
+  >
+    <div
+      class="flex flex-col items-center p-8 bg-surface-0 dark:bg-surface-900 rounded"
+    >
+      <span class="font-bold text-2xl block mb-2 mt-6">{{
+        message.header
+      }}</span>
+      <p class="mb-0">{{ message.message }}</p>
+      <div class="flex items-center gap-2 mt-6">
+        <p-button
+          label="Cancel"
+          [outlined]="true"
+          (onClick)="onReject()"
+          styleClass="w-32"
+        ></p-button>
+        <p-button
+          label="Delete"
+          (onClick)="onAccept()"
+          styleClass="w-32"
+          severity="danger"
+        ></p-button>
+      </div>
+    </div>
+  </ng-template>
+</p-confirmdialog>
+
+<!-- Demand Forecast Dialog -->
+<p-dialog
+  [(visible)]="showForecastDialog"
+  [modal]="true"
+  [style]="{ width: '90vw', maxWidth: '1200px' }"
+  [draggable]="false"
+  [resizable]="false"
+  styleClass="demand-forecast-dialog"
+>
+  <ng-template pTemplate="header">
+    <div class="flex items-center gap-3">
+      <i class="pi pi-chart-line text-3xl text-primary"></i>
+      <div>
+        <h2 class="text-2xl font-bold m-0">Demand Forecast Analysis</h2>
+        <p class="text-sm text-color-secondary m-0 mt-1">
+          {{ selectedProduct?.ProductName }}
+        </p>
+      </div>
+    </div>
+  </ng-template>
+
+  <div class="p-4" *ngIf="selectedProduct">
+    <!-- Product Info Card -->
+    <div
+      class="bg-gradient-to-r from-primary-50 to-primary-100 dark:from-primary-900 dark:to-primary-800 rounded-xl p-6 mb-6 shadow-lg"
+    >
+      <div class="flex flex-col md:flex-row gap-6">
+        <!-- Product Image -->
+        <div
+          class="flex-shrink-0 w-full md:w-48 h-48 bg-white dark:bg-surface-800 rounded-lg overflow-hidden shadow-md"
+        >
+          <img
+            *ngIf="selectedProduct.Image"
+            [src]="selectedProduct.Image"
+            class="w-full h-full object-contain p-4"
+            [alt]="selectedProduct.ProductName"
+            onerror="this.onerror=null; this.src='assets/images/placeholder-image.png';"
+          />
+          <div
+            *ngIf="!selectedProduct.Image"
+            class="flex items-center justify-center w-full h-full"
+          >
+            <i class="pi pi-image text-6xl text-gray-300"></i>
+          </div>
+        </div>
+
+        <!-- Product Details -->
+        <div class="flex-1">
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div class="bg-white dark:bg-surface-800 rounded-lg p-4 shadow-sm">
+              <p class="text-xs text-color-secondary uppercase mb-1">Price</p>
+              <p class="text-2xl font-bold text-primary">
+                {{ currencySymbol }}{{ selectedProduct.Price }}
+              </p>
+            </div>
+
+            <div class="bg-white dark:bg-surface-800 rounded-lg p-4 shadow-sm">
+              <p class="text-xs text-color-secondary uppercase mb-1">
+                Current Stock
+              </p>
+              <p class="text-2xl font-bold text-color">
+                {{ selectedProduct.Quantity || 0 }} units
+              </p>
+            </div>
+
+            <div class="bg-white dark:bg-surface-800 rounded-lg p-4 shadow-sm">
+              <p class="text-xs text-color-secondary uppercase mb-1">Status</p>
+              <span
+                class="inline-block px-3 py-1 rounded-full text-sm font-medium text-white"
+                [ngStyle]="{
+                  'background-color': getIsActiveColor(selectedProduct.IsActive)
+                }"
+              >
+                {{ getActiveStatus(selectedProduct.IsActive) }}
+              </span>
+            </div>
+
+            <div
+              class="bg-white dark:bg-surface-800 rounded-lg p-4 shadow-sm"
+              *ngIf="selectedProduct.Category"
+            >
+              <p class="text-xs text-color-secondary uppercase mb-1">
+                Category
+              </p>
+              <p class="text-lg font-semibold text-color">
+                {{ selectedProduct.Category }}
+              </p>
+            </div>
+
+            <div
+              class="bg-white dark:bg-surface-800 rounded-lg p-4 shadow-sm"
+              *ngIf="selectedProduct.Brand"
+            >
+              <p class="text-xs text-color-secondary uppercase mb-1">Brand</p>
+              <p class="text-lg font-semibold text-color">
+                {{ selectedProduct.Brand }}
+              </p>
+            </div>
+
+            <div
+              class="bg-white dark:bg-surface-800 rounded-lg p-4 shadow-sm"
+              *ngIf="selectedProduct.MOQ"
+            >
+              <p class="text-xs text-color-secondary uppercase mb-1">MOQ</p>
+              <p class="text-lg font-semibold text-color">
+                {{ selectedProduct.MOQ }} units
+              </p>
+            </div>
+          </div>
+
+          <div
+            class="mt-4 bg-white dark:bg-surface-800 rounded-lg p-4 shadow-sm"
+            *ngIf="selectedProduct.Description"
+          >
+            <p class="text-xs text-color-secondary uppercase mb-2">
+              Description
+            </p>
+            <p class="text-sm text-color">{{ selectedProduct.Description }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Forecast Configuration -->
+    <div class="bg-surface-0 dark:bg-surface-900 rounded-xl p-6 mb-6 shadow-md">
+      <h3 class="text-xl font-bold mb-4 flex items-center gap-2">
+        <i class="pi pi-calendar text-primary"></i>
+        Select Forecast Period
+      </h3>
+
+      <div class="flex flex-col md:flex-row gap-4 items-end">
+        <div class="flex-1">
+          <label class="block text-sm font-medium mb-2">Start Date</label>
+          <p-calendar
+            [(ngModel)]="forecastStartDate"
+            [showIcon]="true"
+            dateFormat="yy-mm-dd"
+            placeholder="Select start date"
+            styleClass="w-full"
+            [minDate]="minDate"
+          ></p-calendar>
+        </div>
+
+        <div class="flex-1">
+          <label class="block text-sm font-medium mb-2">End Date</label>
+          <p-calendar
+            [(ngModel)]="forecastEndDate"
+            [showIcon]="true"
+            dateFormat="yy-mm-dd"
+            placeholder="Select end date"
+            styleClass="w-full"
+            [minDate]="forecastStartDate || minDate"
+          ></p-calendar>
+        </div>
+
+        <p-button
+          label="Generate Forecast"
+          icon="pi pi-chart-line"
+          (onClick)="generateForecast()"
+          [loading]="loadingForecast"
+          [disabled]="!forecastStartDate || !forecastEndDate"
+          styleClass="w-full md:w-auto"
+          severity="primary"
+        ></p-button>
+      </div>
+
+      <p class="text-sm text-color-secondary mt-3" *ngIf="forecastStartDate && forecastEndDate">
+        <i class="pi pi-info-circle mr-1"></i>
+        Forecast period: {{ getDaysDifference() }} days
+      </p>
+    </div>
+
+    <!-- Forecast Results -->
+    <div
+      *ngIf="forecastData && forecastData.length > 0"
+      class="bg-surface-0 dark:bg-surface-900 rounded-xl shadow-md overflow-hidden"
+    >
+      <div class="bg-primary-50 dark:bg-primary-900 p-6 border-b border-primary-200 dark:border-primary-700">
+        <h3 class="text-xl font-bold flex items-center gap-2">
+          <i class="pi pi-chart-bar text-primary"></i>
+          Forecast Results
+        </h3>
+        <p class="text-sm text-color-secondary mt-1">
+          Projected demand for the selected period
+        </p>
+      </div>
+
+      <!-- Summary Cards -->
+      <div class="p-6 bg-gradient-to-br from-surface-50 to-surface-100 dark:from-surface-800 dark:to-surface-900">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+          <div class="bg-white dark:bg-surface-800 rounded-lg p-4 shadow-sm border-l-4 border-blue-500">
+            <p class="text-xs text-color-secondary uppercase mb-1">
+              Total Forecasted Demand
+            </p>
+            <p class="text-3xl font-bold text-blue-600 dark:text-blue-400">
+              {{ getTotalForecast() }}
+            </p>
+            <p class="text-xs text-color-secondary mt-1">units</p>
+          </div>
+
+          <div class="bg-white dark:bg-surface-800 rounded-lg p-4 shadow-sm border-l-4 border-green-500">
+            <p class="text-xs text-color-secondary uppercase mb-1">
+              Average Daily Demand
+            </p>
+            <p class="text-3xl font-bold text-green-600 dark:text-green-400">
+              {{ getAverageForecast() }}
+            </p>
+            <p class="text-xs text-color-secondary mt-1">units/day</p>
+          </div>
+
+          <div class="bg-white dark:bg-surface-800 rounded-lg p-4 shadow-sm border-l-4 border-orange-500">
+            <p class="text-xs text-color-secondary uppercase mb-1">
+              Peak Demand
+            </p>
+            <p class="text-3xl font-bold text-orange-600 dark:text-orange-400">
+              {{ getPeakForecast() }}
+            </p>
+            <p class="text-xs text-color-secondary mt-1">units</p>
+          </div>
+
+          <div class="bg-white dark:bg-surface-800 rounded-lg p-4 shadow-sm border-l-4 border-purple-500">
+            <p class="text-xs text-color-secondary uppercase mb-1">
+              Estimated Revenue
+            </p>
+            <p class="text-3xl font-bold text-purple-600 dark:text-purple-400">
+              {{ currencySymbol }}{{ getEstimatedRevenue() }}
+            </p>
+            <p class="text-xs text-color-secondary mt-1">projected</p>
+          </div>
+        </div>
+
+        <!-- Chart -->
+        <div class="bg-white dark:bg-surface-800 rounded-lg p-6 shadow-md mb-6">
+          <h4 class="text-lg font-semibold mb-4">Demand Trend</h4>
+          <p-chart
+            type="line"
+            [data]="chartData"
+            [options]="chartOptions"
+            [style]="{ height: '300px' }"
+          ></p-chart>
+        </div>
+
+        <!-- Detailed Table -->
+        <div class="bg-white dark:bg-surface-800 rounded-lg shadow-md overflow-hidden">
+          <div class="p-4 border-b border-surface-200 dark:border-surface-700">
+            <h4 class="text-lg font-semibold">Detailed Forecast</h4>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full">
+              <thead class="bg-surface-50 dark:bg-surface-900">
+                <tr>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-color-secondary uppercase tracking-wider">
+                    Date
+                  </th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-color-secondary uppercase tracking-wider">
+                    Forecasted Demand
+                  </th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-color-secondary uppercase tracking-wider">
+                    Expected Revenue
+                  </th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-color-secondary uppercase tracking-wider">
+                    Confidence
+                  </th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-surface-200 dark:divide-surface-700">
+                <tr
+                  *ngFor="let item of forecastData; let i = index"
+                  class="hover:bg-surface-50 dark:hover:bg-surface-800 transition-colors"
+                >
+                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-color">
+                    {{ item.date | date: 'MMM dd, yyyy' }}
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-color">
+                    <span class="font-semibold">{{ item.demand }}</span> units
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-color">
+                    {{ currencySymbol }}{{ item.revenue }}
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <span
+                      class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full"
+                      [ngClass]="{
+                        'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200': item.confidence >= 80,
+                        'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200': item.confidence >= 60 && item.confidence < 80,
+                        'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200': item.confidence < 60
+                      }"
+                    >
+                      {{ item.confidence }}%
+                    </span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty State for Forecast -->
+    <div
+      *ngIf="!forecastData || forecastData.length === 0"
+      class="flex flex-col items-center justify-center p-12 bg-surface-50 dark:bg-surface-900 rounded-xl"
+    >
+      <i class="pi pi-chart-line text-6xl text-surface-300 dark:text-surface-600 mb-4"></i>
+      <h3 class="text-xl font-medium text-color mb-2">No Forecast Data</h3>
+      <p class="text-color-secondary text-center max-w-md">
+        Select a date range and click "Generate Forecast" to see demand predictions for this product.
+      </p>
+    </div>
+  </div>
+
+  <ng-template pTemplate="footer">
+    <div class="flex justify-end gap-2">
+      <p-button
+        label="Close"
+        icon="pi pi-times"
+        (onClick)="closeForecastDialog()"
+        [outlined]="true"
+        severity="secondary"
+      ></p-button>
+      <p-button
+        label="Export Data"
+        icon="pi pi-download"
+        (onClick)="exportForecastData()"
+        [disabled]="!forecastData || forecastData.length === 0"
+        severity="primary"
+      ></p-button>
+    </div>
+  </ng-template>
+</p-dialog>
+
+<!-- File Upload Input (Hidden) -->
+<input
+  type="file"
+  #fileUpload
+  style="display: none"
+  accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"
+  (change)="uploadFile($event)"
+/>
+
+<!-- Static Header Area - No scrolling -->
+<div style="padding: 1rem; flex-shrink: 0">
+  <!-- Controls Section -->
+  <div
+    class="flex flex-col xl:flex-row items-center justify-between space-y-4 xl:space-y-0 xl:space-x-4 bg-surface-0 dark:bg-surface-900 p-4 rounded-lg shadow-sm mb-6"
+  >
+    <p-iconfield class="w-full sm:w-auto">
+      <p-inputicon class="pi pi-search"> </p-inputicon>
+      <input
+        pInputText
+        type="text"
+        (input)="onGlobalFilter($event)"
+        placeholder="Search Product"
+        class="w-full sm:w-auto p-inputtext"
+      />
+    </p-iconfield>
+
+    <div
+      class="flex flex-wrap items-center gap-3 justify-center sm:justify-end w-full sm:w-auto"
+    >
+      <ng-container *ngIf="!isDataLoading">
+        <p-button
+          icon="pi pi-refresh"
+          outlined
+          severity="secondary"
+          (click)="reloadState()"
+          class="m-1"
+        />
+        <p-button
+          label="{{ currentPage }} of {{ totalPages }}"
+          outlined
+          severity="secondary"
+          class="m-1"
+        />
+        <p-button
+          icon="pi pi-chevron-left"
+          outlined
+          severity="secondary"
+          (click)="prev()"
+          [disabled]="isFirstPage()"
+          class="m-1"
+        />
+        <p-button
+          icon="pi pi-chevron-right"
+          outlined
+          severity="secondary"
+          (click)="next()"
+          [disabled]="isLastPage()"
+          class="m-1"
+        />
+      </ng-container>
+      <ng-container>
+        <p-divider layout="vertical" class="hidden sm:block m-0 p-0" />
+
+        <p-button
+          icon="pi pi-plus"
+          label="Create Product"
+          (click)="showCreateProductDialog()"
+          severity="secondary"
+          outlined
+          class="m-1"
+        />
+      </ng-container>
+    </div>
+  </div>
+</div>
+
+<!-- Scrollable Content Area -->
+<div style="flex: 1; overflow-y: auto; padding: 1rem">
+  <!-- Loading Spinner -->
+  <div *ngIf="isDataLoading" class="flex justify-center items-center py-24">
+    <i class="pi pi-spin pi-spinner text-4xl text-primary"></i>
+  </div>
+
+  <!-- Grid View for Product Items -->
+  <div
+    *ngIf="!isDataLoading && ProductData.length > 0"
+    class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4"
+  >
+    <div
+      *ngFor="let product of ProductData"
+      class="bg-surface-0 dark:bg-surface-900 rounded-lg border border-surface-200 dark:border-surface-700 shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden cursor-pointer"
+      [attr.data-product-id]="product.ProductId"
+      style="
+        position: relative;
+        transform-origin: center;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+      "
+      (mouseenter)="itemHovered = product.ProductId || null"
+      (mouseleave)="itemHovered = null"
+      (click)="openForecastDialog(product)"
+      [style.transform]="
+        itemHovered === product.ProductId ? 'scale(1.05)' : 'scale(1)'
+      "
+    >
+      <!-- Popup that appears on hover -->
+      <div
+        *ngIf="itemHovered === product.ProductId"
+        style="
+          position: absolute;
+          top: -60px;
+          left: 50%;
+          transform: translateX(-50%);
+          background-color: rgba(0, 0, 0, 0.8);
+          color: white;
+          padding: 8px 12px;
+          border-radius: 6px;
+          z-index: 10;
+          width: 90%;
+          text-align: center;
+          animation: fadeIn 0.2s ease;
+        "
+      >
+        <div style="font-weight: bold; margin-bottom: 4px">
+          {{ product.ProductName || 'Unnamed Product' }}
+        </div>
+        <div>
+          {{ currencySymbol }}
+          {{
+            product.Price !== undefined && product.Price !== null
+              ? product.Price
+              : '0'
+          }}
+          - {{ getActiveStatus(product.IsActive) }}
+        </div>
+        <div
+          style="
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-top: 8px solid rgba(0, 0, 0, 0.8);
+          "
+        ></div>
+      </div>
+
+      <div class="relative group">
+        <div
+          class="absolute top-2 right-2 z-10 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+        >
+          <p-button
+            *ngIf="hasAccess('DTO5226', 'UPDATE')"
+            icon="pi pi-pencil"
+            (click)="showEditProductDialog(product); $event.stopPropagation()"
+            size="small"
+            [rounded]="true"
+            severity="secondary"
+          ></p-button>
+
+          <p-button
+            *ngIf="hasAccess('DTO5226', 'DELETE')"
+            icon="pi pi-trash"
+            (click)="deleteProduct(product); $event.stopPropagation()"
+            severity="danger"
+            size="small"
+            [rounded]="true"
+          ></p-button>
+        </div>
+
+        <div
+          class="h-40 flex items-center justify-center bg-surface-50 dark:bg-surface-800 overflow-hidden"
+        >
+          <img
+            *ngIf="product.Image"
+            [src]="product.Image"
+            class="w-full h-full object-contain transition-transform duration-300 transform group-hover:scale-110"
+            style="padding: 10px"
+            alt="{{ product.ProductName || 'Product image' }}"
+            onerror="this.onerror=null; this.src='assets/images/placeholder-image.png'; console.error('Failed to load image:', this.alt);"
+          />
+          <div
+            *ngIf="!product.Image"
+            class="flex items-center justify-center w-full h-full"
+          >
+            <i class="pi pi-image text-4xl text-gray-300"></i>
+          </div>
+        </div>
+
+        <div class="p-4">
+          <h3
+            class="text-lg font-medium text-color truncate"
+            pTooltip="{{ product.ProductName || 'Unnamed Product' }}"
+            tooltipPosition="top"
+          >
+            {{ product.ProductName || 'Unnamed Product' }}
+          </h3>
+
+          <div class="mt-2 flex justify-between items-center">
+            <span
+              class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-primary text-white"
+            >
+              {{ currencySymbol }}
+              {{
+                product.Price !== undefined && product.Price !== null
+                  ? product.Price
+                  : '0'
+              }}
+            </span>
+            <span
+              class="text-sm text-white px-2 py-1 rounded"
+              [ngStyle]="{
+                'background-color': getIsActiveColor(product.IsActive)
+              }"
+            >
+              {{ getActiveStatus(product.IsActive) }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <div
+    *ngIf="!isDataLoading && ProductData.length === 0"
+    class="flex flex-col items-center justify-center p-10 bg-surface-0 dark:bg-surface-900 rounded-lg shadow-sm border border-surface-200 dark:border-surface-700"
+  >
+    <i
+      class="pi pi-inbox text-6xl text-surface-300 dark:text-surface-600 mb-4"
+    ></i>
+    <h3 class="text-xl font-medium text-color">No Products Found</h3>
+    <p class="text-color-secondary mt-2">
+      Add your first product to get started
+    </p>
+    <div class="flex gap-3 mt-4">
+      <p-button
+        *ngIf="hasAccess('DTO5226', 'CREATE') && dtoName"
+        icon="pi pi-upload"
+        label="Upload Products"
+        (click)="fileUpload.click()"
+        severity="secondary"
+        outlined
+      ></p-button>
+      <p-button
+        *ngIf="hasAccess('DTO5226', 'CREATE') && dtoName"
+        icon="pi pi-plus"
+        label="Create Product"
+        (click)="showCreateProductDialog()"
+        severity="primary"
+      ></p-button>
+    </div>
+  </div>
+
+  <!-- Extra Bottom Padding as requested -->
+  <div class="h-40"></div>
+
+  <!-- Hidden Table for Pagination Support -->
+  <p-table
+    #dt
+    [value]="ProductData"
+    [(selection)]="selectedRows"
+    dataKey="ProductId"
+    [rows]="rows"
+    [paginator]="true"
+    [first]="first"
+    [globalFilterFields]="[
+      'Name',
+      'Description',
+      'Price',
+      'Category',
+      'Quantity',
+      'IsActive',
+      'OrganizationId',
+      'UPC',
+      'Manufacturer',
+      'MOQ',
+      'RatePerWeek',
+      'Image'
+    ]"
+    class="hidden"
+    [loading]="isDataLoading"
+  >
+  </p-table>
+</div>
+
+<style>
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateX(-50%) translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+  }
+
+  ::ng-deep .demand-forecast-dialog .p-dialog-header {
+    background: linear-gradient(135deg, var(--primary-50) 0%, var(--primary-100) 100%);
+    border-bottom: 2px solid var(--primary-200);
+  }
+
+  ::ng-deep .p-dialog .p-dialog-content {
+    padding: 0;
+  }
+</style>

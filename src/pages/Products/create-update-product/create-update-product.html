@@ -1,0 +1,257 @@
+<div class="p-4">
+  <!-- Product Image Preview -->
+  <div class="flex justify-center mb-6">
+    <img
+      *ngIf="product?.Image && !uploadingImage"
+      [src]="product.Image"
+      class="w-52 h-52 object-contain rounded-md shadow-sm border border-surface-200 dark:border-surface-700"
+      alt="Product image"
+      onerror="this.onerror=null; this.src='assets/images/placeholder-image.png';"
+    />
+    <div
+      *ngIf="uploadingImage"
+      class="w-52 h-52 flex items-center justify-center border border-surface rounded"
+    >
+      <p-skeleton width="10rem" height="10rem"></p-skeleton>
+    </div>
+    <div
+      *ngIf="!product?.Image && !uploadingImage"
+      class="w-52 h-52 flex items-center justify-center bg-surface-50 dark:bg-surface-800 border border-surface-200 dark:border-surface-700 rounded-md"
+    >
+      <i class="pi pi-image text-5xl text-surface-300"></i>
+    </div>
+  </div>
+
+  <!-- Product Image Uploader -->
+  <div class="field col-span-2 mb-8">
+    <label class="block font-medium mb-2">Product Image</label>
+    <div class="flex flex-row items-center gap-2">
+      <button
+        pButton
+        type="button"
+        label="Browse"
+        icon="pi pi-upload"
+        class="p-button-outlined p-button-secondary"
+        (click)="triggerFileInput()"
+        [disabled]="uploadingImage"
+      ></button>
+      <span class="text-sm text-color-secondary">
+        Accepted formats: JPG, PNG, GIF. Max file size: 10MB
+      </span>
+      <input
+        #fileInput
+        type="file"
+        (change)="onFileSelect($event)"
+        accept=".jpg,.png,.gif"
+        class="hidden"
+      />
+    </div>
+  </div>
+
+  <form [formGroup]="productForm" class="flex flex-col">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+
+      <!-- Name -->
+      <div class="field">
+        <label for="ProductName" class="block font-medium mb-2">Product Name</label>
+        <input
+          pInputText
+          id="ProductName"
+          formControlName="ProductName"
+          autocomplete="off"
+          class="w-full"
+          [ngClass]="{'ng-invalid ng-dirty': submitted && productForm.get('ProductName')?.invalid}"
+        />
+        <small
+          class="text-red-500"
+          *ngIf="submitted && productForm.get('ProductName')?.invalid"
+        >
+          Product name is required.
+        </small>
+      </div>
+
+      <!-- Brand -->
+      <div class="field">
+        <label for="Brand" class="block font-medium mb-2">Brand</label>
+        <input
+          pInputText
+          id="Brand"
+          formControlName="Brand"
+          autocomplete="off"
+          class="w-full"
+        />
+      </div>
+
+      <!-- Description -->
+      <div class="field md:col-span-2">
+        <label for="Description" class="block font-medium mb-2">Description</label>
+        <input
+          pInputText
+          id="Description"
+          formControlName="Description"
+          autocomplete="off"
+          class="w-full"
+        />
+      </div>
+
+      <!-- SKU -->
+      <div class="field">
+        <label for="sku" class="block font-medium mb-2">SKU</label>
+        <input
+          pInputText
+          id="sku"
+          formControlName="sku"
+          autocomplete="off"
+          class="w-full"
+        />
+      </div>
+
+
+            <!-- Quantity -->
+      <div class="field">
+        <label for="Quantity" class="block font-medium mb-2">Quantity</label>
+        <input
+          pInputText
+          id="Quantity"
+          formControlName="Quantity"
+          autocomplete="off"
+          class="w-full"
+          type="number"
+        />
+      </div>
+
+
+      <!-- MOQ -->
+      <div class="field">
+        <label for="MOQ" class="block font-medium mb-2">MOQ</label>
+        <input
+          pInputText
+          id="MOQ"
+          formControlName="MOQ"
+          autocomplete="off"
+          class="w-full"
+          type="number"
+        />
+      </div>
+
+      <!-- Category (Dropdown) -->
+      <div class="field">
+        <label for="Category" class="block font-medium mb-2">Category</label>
+        <p-select
+          id="Category"
+          formControlName="Category"
+          [options]="categoryOptions"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="Select a Category"
+          class="w-full"
+          styleClass="w-full"
+        ></p-select>
+      </div>
+
+      <!-- Price -->
+      <div class="field">
+        <label for="Price" class="block font-medium mb-2">Price</label>
+        <div class="p-inputgroup">
+          <input
+            pInputText
+            id="Price"
+            formControlName="Price"
+            autocomplete="off"
+            class="w-full"
+            type="number"
+          />
+        </div>
+      </div>
+
+      <!-- Discount Percent -->
+      <div class="field">
+        <label for="DiscountPercent" class="block font-medium mb-2">Discount (%)</label>
+        <div class="p-inputgroup">
+          <input
+            pInputText
+            id="DiscountPercent"
+            formControlName="DiscountPercent"
+            autocomplete="off"
+            class="w-full"
+            type="number"
+            min="0"
+            max="100"
+          />
+          <span class="p-inputgroup-addon">%</span>
+        </div>
+      </div>
+
+
+
+      <!-- Store ID -->
+      <div class="field">
+        <label for="StoreID" class="block font-medium mb-2">Store ID</label>
+        <input
+          pInputText
+          id="StoreID"
+          formControlName="StoreID"
+          autocomplete="off"
+          class="w-full"
+        />
+      </div>
+
+      <!-- Supplier ID -->
+      <div class="field">
+        <label for="SupplierID" class="block font-medium mb-2">Supplier ID</label>
+        <input
+          pInputText
+          id="SupplierID"
+          formControlName="SupplierID"
+          autocomplete="off"
+          class="w-full"
+        />
+      </div>
+
+      <!-- Is Perishable -->
+      <div class="field">
+        <label class="block font-medium mb-2">Perishable</label>
+        <div class="flex items-center h-12">
+          <p-inputSwitch formControlName="IsPerishable"></p-inputSwitch>
+          <span class="ml-2">
+            {{ productForm.get('IsPerishable')?.value ? 'Yes' : 'No' }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Status -->
+      <div class="field">
+        <label class="block font-medium mb-2">Status</label>
+        <div class="flex items-center h-12">
+          <p-inputSwitch formControlName="IsActive"></p-inputSwitch>
+          <span class="ml-2">
+            {{ productForm.get('IsActive')?.value ? 'Active' : 'Inactive' }}
+          </span>
+        </div>
+      </div>
+
+    </div>
+  </form>
+</div>
+
+<!-- Footer with Actions -->
+<div
+  class="flex justify-end gap-3 p-4 border-t border-surface-200 dark:border-surface-700"
+>
+  <button
+    pButton
+    type="button"
+    label="Cancel"
+    icon="pi pi-times"
+    class="p-button-text"
+    (click)="CloseInstances($event)"
+  ></button>
+  <button
+    pButton
+    type="button"
+    label="Save"
+    icon="pi pi-check"
+    [loading]="isLoading"
+    (click)="save()"
+  ></button>
+</div>

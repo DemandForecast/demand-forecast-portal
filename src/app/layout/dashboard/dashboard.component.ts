@@ -42,13 +42,10 @@ export class DashboardComponent implements OnInit {
   chartOptions: any;
   pieData: any;
   pieOptions: any;
+  count: any;
+  totalStock: any;
+  top5Products: any[] = [];
 
-  transactions: {
-    id: string;
-    product: string;
-    amount: number;
-    status: string;
-  }[] = [];
   dashboardData: DashboardDto | null = null;
 
   constructor(
@@ -59,7 +56,8 @@ export class DashboardComponent implements OnInit {
   ngOnInit() {
     this.getCurrencySettings();
     this.loadDashboardData();
-    // this.loadRecentTransactions();
+    this.loadTotalInventoryStock();
+    this.loadTop5ProductsByStock();
   }
 
   getCurrencySettings(): void {
@@ -75,71 +73,12 @@ export class DashboardComponent implements OnInit {
     }
   }
 
-  // loadRecentTransactions(): void {
-  //   const branchId = sessionStorage.getItem('BranchId') || '';
-  //   const params = { page: 1, size: 5, branchId: branchId };
-
-  //   this.dashboardService.findAllInventoryHistoryPaginated(params).subscribe({
-  //     next: (response) => {
-  //       if (response.body) {
-  //         this.mapTransactions(response.body.inventoryHistorys);
-  //       } else {
-  //         this.transactions = [];
-  //       }
-  //     },
-  //     error: () => {
-  //       this.transactions = [];
-  //     },
-  //   });
-  // }
-
-  // mapTransactions(inventoryHistorys: InventoryHistoryDto[]): void {
-  //   this.transactions = inventoryHistorys.map((history) => {
-  //     let totalAmount = 0;
-  //     if (history.Items && Array.isArray(history.Items)) {
-  //       totalAmount = history.Items.reduce((sum, item) => {
-  //         return sum + (item.UnitPrice || 0) * (item.Quantity || 0);
-  //       }, 0);
-  //     }
-
-  //     let productDisplay = 'Unknown';
-  //     if (history.Items && history.Items.length > 0) {
-  //       productDisplay = history.Items[0].ProductId || 'Unknown';
-  //       if (history.Items.length > 1) {
-  //         productDisplay += ` + ${history.Items.length - 1} more`;
-  //       }
-  //     }
-
-  //     let status = 'Completed';
-  //     switch (history.Action) {
-  //       case 'INVOICE':
-  //         status = 'Completed';
-  //         break;
-  //       case 'GRN':
-  //         status = 'Received';
-  //         break;
-  //       case 'RECEIVING-ITEMS':
-  //         status = 'Processing';
-  //         break;
-  //       default:
-  //         status = 'Pending';
-  //     }
-
-  //     return {
-  //       id: history.InventoryHistoryId || '',
-  //       product: productDisplay,
-  //       amount: totalAmount,
-  //       status: status,
-  //     };
-  //   });
-  // }
-
   loadDashboardData(): void {
-    const branchId = sessionStorage.getItem('BranchId') || '';
-    this.dashboardService.getDashboardData(branchId).subscribe({
+    this.dashboardService.getCountProducts().subscribe({
       next: (response) => {
         if (response.body) {
-          this.dashboardData = response.body;
+          this.count = response.body;
+          console.log('Dashboard Data:', this.dashboardData);
           this.updateDashboardDisplay();
         } else {
           this.resetDashboardToZero();
@@ -151,12 +90,48 @@ export class DashboardComponent implements OnInit {
     });
   }
 
+  loadTotalInventoryStock(): void {
+    this.dashboardService.getTotalInventoryStock().subscribe({
+      next: (response) => {
+        if (response.body) {
+          this.totalStock = response.body;
+          console.log('Total Inventory Stock:', this.totalStock);
+        } else {
+          this.resetDashboardToZero();
+        }
+      },
+      error: () => {
+        this.resetDashboardToZero();
+      },
+    });
+  }
+
+  loadTop5ProductsByStock(): void {
+    this.dashboardService.getTop5ProductsByStock().subscribe({
+      next: (response) => {
+        if (response.body) {
+          this.top5Products = response.body.data;
+          console.log('Top 5 Products by Stock:', this.top5Products);
+          // Update pie chart with new data
+          this.updatePieChart();
+        } else {
+          this.top5Products = [];
+          this.updatePieChart();
+        }
+      },
+      error: () => {
+        this.top5Products = [];
+        this.updatePieChart();
+      },
+    });
+  }
+
   resetDashboardToZero(): void {
     this.salesData = { annual: 0, daily: 0 };
     this.profitData = { annual: 0, daily: 0 };
     this.stockData = { items: 0, value: 0 };
     this.wastageData = { items: 0, cost: 0 };
-    this.transactions = [];
+    this.top5Products = [];
     this.initChartData();
   }
 
@@ -234,32 +209,52 @@ export class DashboardComponent implements OnInit {
       },
     };
 
-    this.pieData = {
-      labels: [
-        'Electronics',
-        'Clothing',
-        'Food & Beverages',
-        'Books',
-        'Others',
-      ],
-      datasets: [
-        {
-          data: this.dashboardData ? [30, 25, 20, 15, 10] : [0, 0, 0, 0, 0],
-          backgroundColor: [
-            '#3B82F6',
-            '#EC4899',
-            '#14B8A6',
-            '#F59E0B',
-            '#6B7280',
-          ],
-        },
-      ],
-    };
+    // Initialize pie chart
+    this.updatePieChart();
+  }
+
+  updatePieChart(): void {
+    if (this.top5Products && this.top5Products.length > 0) {
+      const labels = this.top5Products.map(
+        (product) => product.productName || product.productId
+      );
+      const data = this.top5Products.map((product) => product.currentInventory);
+
+      // Generate colors for each product
+      const colors = ['#3B82F6', '#EC4899', '#14B8A6', '#F59E0B', '#6B7280'];
+
+      this.pieData = {
+        labels: labels,
+        datasets: [
+          {
+            data: data,
+            backgroundColor: colors.slice(0, this.top5Products.length),
+          },
+        ],
+      };
+    } else {
+      this.pieData = {
+        labels: ['No Data'],
+        datasets: [
+          {
+            data: [1],
+            backgroundColor: ['#E5E7EB'],
+          },
+        ],
+      };
+    }
 
     this.pieOptions = {
       plugins: {
         legend: {
           position: 'bottom',
+        },
+        tooltip: {
+          callbacks: {
+            label: (context: any) => {
+              return `${context.label}: ${context.raw} items`;
+            },
+          },
         },
       },
     };
@@ -359,6 +354,31 @@ export class DashboardComponent implements OnInit {
     }
   }
 
+  getStockStatus(inventory: number): string {
+    if (inventory > 200) {
+      return 'High Stock';
+    } else if (inventory >= 100) {
+      return 'Optimal';
+    } else if (inventory >= 50) {
+      return 'Low Stock';
+    } else {
+      return 'Critical';
+    }
+  }
+
+  getStockStatusClass(inventory: number): string {
+    const baseClass = 'px-3 py-1 rounded-full text-sm font-medium';
+    if (inventory > 200) {
+      return `${baseClass} bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200`;
+    } else if (inventory >= 100) {
+      return `${baseClass} bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200`;
+    } else if (inventory >= 50) {
+      return `${baseClass} bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200`;
+    } else {
+      return `${baseClass} bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200`;
+    }
+  }
+
   navigateToReports() {
     this.router.navigate(['/report']);
   }
@@ -368,7 +388,7 @@ export class DashboardComponent implements OnInit {
   }
 
   navigateToProduct() {
-    this.router.navigate(['/product']);
+    this.router.navigate(['/products']);
   }
 
   changeSelect() {

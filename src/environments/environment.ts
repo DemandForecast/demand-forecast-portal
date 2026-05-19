@@ -5,8 +5,8 @@ export const environment = {
   OrganizeUrl: 'http://127.0.0.1:8888/Organizations/api',
  InventoryUrl: 'http://127.0.0.1:8888/DemandFlow-Service/api',
 
-  LogoLight: '',
-  LogoDark: 'https://i.postimg.cc/9f5qsBh6/images.jpg',
+  LogoLight: 'https://i.postimg.cc/B6R5Y6m6/Chat-GPT-Image-May-16-2026-10-01-48-PM-removebg-preview.png',
+  LogoDark: 'https://i.postimg.cc/B6R5Y6m6/Chat-GPT-Image-May-16-2026-10-01-48-PM-removebg-preview.png',
   WORKSPACEID: 'WS680',
   auth0: {
     domain: 'dev-yi2vtudtt52q3bgx.us.auth0.com',

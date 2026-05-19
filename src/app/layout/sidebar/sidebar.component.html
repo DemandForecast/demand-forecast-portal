@@ -18,8 +18,8 @@
           [src]="getLogoSrc()"
           alt="Logo"
           [ngClass]="{
-            'w-32 h-32': !isSlimMenu,
-            'w-12 h-12': isSlimMenu
+            'w-36 h-36': !isSlimMenu,
+            'w-14 h-14': isSlimMenu
           }"
         />
       </div>
@@ -70,7 +70,7 @@
 
         <!-- Products Expandable Menu -->
         <div class="w-full">
-        
+
           <p-popover #popup>
             <div class="flex flex-col">
               <div
@@ -93,7 +93,7 @@
           </p-popover>
 
           <!-- Submenu items with animation -->
-          <div *ngIf="!isSlimMenu" 
+          <div *ngIf="!isSlimMenu"
                [@submenuAnimation]="isProductMenuExpanded ? 'expanded' : 'collapsed'"
                class="ml-8 overflow-hidden">
             <div
@@ -149,7 +149,7 @@
         </div>
       </div>
     </div>
-    
+
     <div
       [ngClass]="{
         'w-12 flex flex-col items-center': isSlimMenu,
@@ -194,10 +194,10 @@
         shape="circle"
         class="shrink-0 cursor-pointer"
         (click)="toggle($event)"
-      />  
-    
+      />
+
       <div class="flex flex-wrap w-full" [class.hidden]="isSlimMenu">
-        <div 
+        <div
           class="flex items-center gap-2 py-3 hover:bg-emphasis cursor-pointer rounded-border w-full overflow-hidden"
           (click)="toggle($event)"
         >
@@ -211,12 +211,12 @@
             </div>
           </div>
         </div>
-    
+
         <p-popover #op>
           <div class="flex flex-col gap-4">
-            <button 
-              pButton 
-              (click)="logout()" 
+            <button
+              pButton
+              (click)="logout()"
               severity="secondary"
               class="flex items-center gap-2 px-3 py-2 w-full text-left"
             >
@@ -225,12 +225,12 @@
             </button>
           </div>
         </p-popover>
-    
+
         <div class="flex justify-center" [class.hidden]="!isSlimMenu">
-          <button 
-            pButton 
-            (click)="logout()" 
-            icon="pi pi-sign-out" 
+          <button
+            pButton
+            (click)="logout()"
+            icon="pi pi-sign-out"
             severity="secondary"
           ></button>
         </div>

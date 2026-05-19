@@ -3,7 +3,7 @@
   <div class="flex flex-wrap gap-4 items-start justify-between p-1">
     <div class="flex-1">
       <div class="text-800 text-3xl font-semibold leading-normal">
-        Welcome to Mezota Retail
+        Welcome to Demand Forecasting Dashboard
       </div>
     </div>
   </div>
@@ -35,31 +35,31 @@
 
     <!-- Stats Cards Grid -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-6">
-      <!-- Sales Card -->
+      <!-- Products Count Card -->
       <div class="bg-white dark:bg-surface-900 rounded-xl shadow-md p-6">
         <div class="flex justify-between items-center mb-4">
-          <div class="text-gray-600 dark:text-gray-300">Annual Sales</div>
+          <div class="text-gray-600 dark:text-gray-300">Products Count</div>
           <i class="pi pi-chart-line text-blue-500 dark:text-blue-400 text-xl"></i>
         </div>
         <div class="text-gray-900 dark:text-white text-2xl font-bold">
-          {{ currencySymbol }} {{ formatCurrency(salesData.annual) }}
+          {{ count?.count ?? 0 }} Items
         </div>
         <div class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-          Daily: {{ currencySymbol }} {{ formatCurrency(salesData.daily) }}
+          Total Products
         </div>
       </div>
 
-      <!-- Profit Card -->
+      <!-- Total Stock Count Card -->
       <div class="bg-white dark:bg-surface-900 rounded-xl shadow-md p-6">
         <div class="flex justify-between items-center mb-4">
-          <div class="text-gray-600 dark:text-gray-300">Annual Profit</div>
+          <div class="text-gray-600 dark:text-gray-300">Total Stock Count</div>
           <i class="pi pi-dollar text-green-500 dark:text-green-400 text-xl"></i>
         </div>
         <div class="text-gray-900 dark:text-white text-2xl font-bold">
-          {{ currencySymbol }} {{ formatCurrency(profitData.annual) }}
+          {{ totalStock?.totalStock ?? 0 }} Items
         </div>
         <div class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-          Daily: {{ currencySymbol }} {{ formatCurrency(profitData.daily) }}
+          Total Inventory
         </div>
       </div>
 
@@ -98,7 +98,7 @@
       <div class="bg-white dark:bg-surface-900 rounded-xl shadow-md p-6">
         <div class="flex items-center justify-between mb-6">
           <div class="text-xl font-semibold text-gray-800 dark:text-white">
-            Sales Analytics
+            Top 5 Products Forecasting Analysis
           </div>
           <div class="flex items-center gap-4">
             <div class="flex items-center gap-2">
@@ -121,41 +121,41 @@
 
       <!-- Bottom Section -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <!-- Recent Transactions -->
+        <!-- Product Wise Stock Details -->
         <div class="bg-white dark:bg-surface-900 rounded-xl shadow-md p-6">
           <div class="flex items-center justify-between mb-6">
             <div class="text-xl font-semibold text-gray-800 dark:text-white">
-              Recent Transactions
+              Product Wise Stock Details
             </div>
             <p-button
               label="View All"
               icon="pi pi-arrow-right"
               styleClass="p-button-text"
-              (onClick)="navigateToTransaction()"
+              (onClick)="navigateToProduct()"
             ></p-button>
           </div>
           <p-table
-            [value]="transactions"
+            [value]="top5Products"
             [rows]="5"
             [paginator]="true"
             styleClass="p-datatable-sm"
           >
             <ng-template pTemplate="header">
               <tr>
-                <th>ID</th>
-                <th>Product</th>
-                <th>Amount</th>
+                <th>Product ID</th>
+                <th>Product Name</th>
+                <th>Current Stock</th>
                 <th>Status</th>
               </tr>
             </ng-template>
-            <ng-template pTemplate="body" let-transaction>
+            <ng-template pTemplate="body" let-product>
               <tr>
-                <td>{{ transaction.id }}</td>
-                <td>{{ transaction.product }}</td>
-                <td>{{ currencySymbol }} {{ formatCurrency(transaction.amount) }}</td>
+                <td>{{ product.productId }}</td>
+                <td>{{ product.productName || 'N/A' }}</td>
+                <td>{{ product.currentInventory }} items</td>
                 <td>
-                  <span [class]="getStatusClass(transaction.status)">
-                    {{ transaction.status }}
+                  <span [class]="getStockStatusClass(product.currentInventory)">
+                    {{ getStockStatus(product.currentInventory) }}
                   </span>
                 </td>
               </tr>
@@ -163,11 +163,11 @@
           </p-table>
         </div>
 
-        <!-- Top Products -->
+        <!-- Top Products Pie Chart -->
         <div class="bg-white dark:bg-surface-900 rounded-xl shadow-md p-6">
           <div class="flex items-center justify-between mb-6">
             <div class="text-xl font-semibold text-gray-800 dark:text-white">
-              Top Products
+              Top Products by Stock
             </div>
             <p-button
               label="View All"

@@ -8,7 +8,7 @@ type EntityResponseType = HttpResponse<DashboardDto>;
 
 @Injectable()
 export class DashboardService {
-  resourceUrl = environment.ReportUrl;
+  resourceUrl = environment.InventoryUrl;
   resourceUrli = environment.InventoryUrl;
 
   headers = {
@@ -24,6 +24,29 @@ export class DashboardService {
       { params: { branchId }, observe: 'response', headers: this.headers }
     );
   }
+
+    getCountProducts(): Observable<HttpResponse<any>> {
+    return this.http.get<any>(
+      `${this.resourceUrl}/CountProducts`,
+      { params: { }, observe: 'response', headers: this.headers }
+    );
+  }
+
+
+      getTotalInventoryStock(): Observable<HttpResponse<any>> {
+    return this.http.get<any>(
+      `${this.resourceUrl}/TotalInventoryStock`,
+      { params: { }, observe: 'response', headers: this.headers }
+    );
+  }
+
+        getTop5ProductsByStock(): Observable<HttpResponse<any>> {
+    return this.http.get<any>(
+      `${this.resourceUrl}/Top5ProductsByStock`,
+      { params: { }, observe: 'response', headers: this.headers }
+    );
+  }
+
 
   // findAllInventoryHistoryPaginated(
   //   params: any

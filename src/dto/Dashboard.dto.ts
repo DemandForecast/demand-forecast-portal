@@ -1,4 +1,6 @@
 export interface IDashboard {
+  count?: number;
+  totalStock?: number;
   AnnualSales?: number;
   AnnualProfit?: number;
   StockItems?: number;
@@ -11,6 +13,9 @@ export interface IDashboard {
 
 export class DashboardDto implements IDashboard {
   constructor(
+
+    public count?: number,
+    public totalStock?: number,
     public AnnualSales?: number,
     public AnnualProfit?: number,
     public StockItems?: number,

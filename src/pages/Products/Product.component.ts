@@ -94,8 +94,6 @@ export class ProductComponent implements OnInit {
   canDelete: boolean = true;
   roleConfig = roleConfig;
 
-  // Add property to track hovered item
-  itemHovered: string | null = null;
   searchQuery = '';
   searchSubject = new Subject<string>();
 
@@ -155,7 +153,7 @@ export class ProductComponent implements OnInit {
     switch (this.dtoName) {
       case 'ProductSubCategory':
         this.ProductSubCategory = params['primarykey'];
-        this.findAllProductByProductSubCategoryIdPaginated({}); // Use paginated version
+        this.findAllProductByProductSubCategoryIdPaginated({});
         break;
 
       default:
@@ -183,7 +181,7 @@ export class ProductComponent implements OnInit {
           .subscribe(
             (response) => {
               if (response) {
-                this.ProductData = response.products;
+                this.ProductData = this.mapBackendDataToDto(response.products);
                 this.totalRecords = response.count;
               } else {
                 this.ProductData = [];
@@ -229,7 +227,8 @@ export class ProductComponent implements OnInit {
         .subscribe(
           (response) => {
             if (response) {
-              this.ProductData = response;
+              // Map the backend data format to our DTO format
+              this.ProductData = this.mapBackendDataToDto(response);
               this.totalRecords = response.length;
             } else {
               this.ProductData = [];
@@ -249,6 +248,34 @@ export class ProductComponent implements OnInit {
           }
         )
     );
+  }
+
+  /**
+   * Map backend data format (camelCase) to DTO format (PascalCase)
+   */
+  private mapBackendDataToDto(data: any[]): ProductDto[] {
+    if (!data || !Array.isArray(data)) {
+      return [];
+    }
+
+    return data.map((item) => new ProductDto(
+      item.productId || item.ProductId,
+      item.productName || item.ProductName,
+      item.category || item.Category,
+      item.brand || item.Brand,
+      item.sku || item.SKU || item.sku,
+      item.description || item.Description,
+      item.price || item.Price || 0,
+      item.image || item.Image,
+      item.discountPercent || item.DiscountPercent || 0,
+      item.isPerishable || item.IsPerishable || false,
+      item.storeId || item.StoreID,
+      item.supplierId || item.SupplierID,
+      item.quantity || item.Quantity || 0,
+      item.moq || item.MOQ,
+      item.isActive !== undefined ? item.isActive : (item.IsActive !== undefined ? item.IsActive : true),
+      item.deleted || item.Deleted || false
+    ));
   }
 
   onGlobalFilter(event: Event): void {
@@ -344,33 +371,61 @@ export class ProductComponent implements OnInit {
     return 'Inactive';
   }
 
+  /**
+   * Get stock level status based on quantity
+   */
+  getStockLevel(quantity: number | undefined): 'high' | 'medium' | 'low' {
+    const qty = quantity || 0;
+    if (qty > 100) return 'high';
+    if (qty > 50) return 'medium';
+    return 'low';
+  }
+
+  /**
+   * Calculate discounted price
+   */
+  getDiscountedPrice(product: ProductDto): number {
+    const price = product.Price || 0;
+    const discount = product.DiscountPercent || 0;
+
+    if (discount > 0) {
+      return Math.round((price * (1 - discount / 100)) * 100) / 100;
+    }
+    return price;
+  }
+
+  /**
+   * Calculate savings from discount
+   */
+  getSavings(product: ProductDto): number {
+    const price = product.Price || 0;
+    const discountedPrice = this.getDiscountedPrice(product);
+    return Math.round((price - discountedPrice) * 100) / 100;
+  }
+
   downloadFile() {
     this.productService.downloadFile().subscribe(
       (response: HttpResponse<Blob>) => {
-        // Extract filename from content-disposition header
         const contentDispositionHeader: string | null =
           response.headers.get('content-disposition');
         const filename: string =
           this.getFilenameFromContentDisposition(contentDispositionHeader);
 
         if (response.body) {
-          // Create URL for the blob data
           const blobUrl: string = window.URL.createObjectURL(response.body);
-          // Create an anchor element and trigger download
           const a = document.createElement('a');
           document.body.appendChild(a);
           a.href = blobUrl;
           a.download = filename;
           a.click();
 
-          // Clean up
           window.URL.revokeObjectURL(blobUrl);
           document.body.removeChild(a);
         }
         this.messageService.add({
           severity: 'success',
-          summary: 'Download Successfull',
-          detail: ` Excel successfully downloaded.`,
+          summary: 'Download Successful',
+          detail: `Excel successfully downloaded.`,
           life: 3000,
         });
       },
@@ -378,7 +433,7 @@ export class ProductComponent implements OnInit {
         this.messageService.add({
           severity: 'error',
           summary: 'Download Failed',
-          detail: ` Failed to download excel.`,
+          detail: `Failed to download excel.`,
           life: 3000,
         });
       }
@@ -410,12 +465,10 @@ export class ProductComponent implements OnInit {
     const formData: FormData = new FormData();
     formData.append('file', file);
 
-    // Show loading indicator
     this.loading = true;
 
     this.productService.uploadFile(formData).subscribe(
       (response) => {
-        // Handle success
         this.loading = false;
         this.messageService.add({
           severity: 'success',
@@ -424,28 +477,22 @@ export class ProductComponent implements OnInit {
           life: 3000,
         });
 
-        // Refresh product list if applicable
         this.loadProducts();
       },
       (error) => {
-        // Handle error
         this.loading = false;
 
         let errorMessage = `Failed to upload file "${file.name}".`;
 
-        // Extract detailed error information if available
         if (error.error) {
           if (error.error.message) {
             errorMessage = error.error.message;
           }
 
-          // Handle validation errors array if present
           if (error.error.errors && Array.isArray(error.error.errors)) {
-            // Show the first 3 errors in the toast
             const topErrors = error.error.errors.slice(0, 3);
             errorMessage += ` First errors: ${topErrors.join('; ')}`;
 
-            // Show all errors in a dialog if there are many
             if (error.error.errors.length > 3) {
               this.showErrorDetails(error.error.errors, file.name);
             }
@@ -459,13 +506,11 @@ export class ProductComponent implements OnInit {
           life: 5000,
         });
 
-        // Reset file input
         event.target.value = '';
       }
     );
   }
 
-  // Helper method to show detailed errors in a dialog
   showErrorDetails(errors: string[], fileName: string) {
     this.confirmationService.confirm({
       header: `Upload Errors for ${fileName}`,
@@ -476,13 +521,10 @@ export class ProductComponent implements OnInit {
       </div>`,
       acceptLabel: 'Close',
       rejectVisible: false,
-      accept: () => {
-        // Dialog closed
-      },
+      accept: () => {},
     });
   }
 
-  //Find all Product data from db by ProductSubCategory
   findAllProductByProductSubCategoryId(params: any) {
     if (this.ProductSubCategory) {
       this.subscription.add(
@@ -497,7 +539,7 @@ export class ProductComponent implements OnInit {
           .subscribe(
             (res: IProduct[] | null) => {
               if (res != null) {
-                this.ProductData = res;
+                this.ProductData = this.mapBackendDataToDto(res);
               } else {
                 this.ProductData = [];
               }
@@ -531,7 +573,6 @@ export class ProductComponent implements OnInit {
     }
   }
 
-  //dynamic dialog
   showCreateProductDialog() {
     switch (this.dtoName) {
       case 'ProductSubCategory':
@@ -544,7 +585,6 @@ export class ProductComponent implements OnInit {
     }
   }
 
-  //dynamic dialog
   showCreateProductByProductSubCategoryDialog() {
     const ref = this.dialogService.open(CreateUpdateProduct, {
       data: { ProductSubCategoryId: this.ProductSubCategory },
@@ -558,7 +598,6 @@ export class ProductComponent implements OnInit {
     });
   }
 
-  //dynamic dialog
   showCreateProductDialogDefault() {
     const ref = this.dialogService.open(CreateUpdateProduct, {
       header: 'Create Product',
@@ -585,7 +624,6 @@ export class ProductComponent implements OnInit {
     });
   }
 
-  //delete Product
   deleteProduct(Product: ProductDto) {
     this.confirmationService.confirm({
       header: 'Are you sure ?',
@@ -615,47 +653,26 @@ export class ProductComponent implements OnInit {
   }
 
   hasAccess(dtoId: string, accessType: string): boolean {
-    console.log('--- Checking Access ---');
-    console.log('DTO ID:', dtoId);
-    console.log('Access Type:', accessType);
-
     const roleName = localStorage.getItem('roleName');
-    console.log('Retrieved roleName from localStorage:', roleName);
 
     if (roleName !== null) {
       const rolePermissions = roleConfig[roleName];
-      console.log('Role permissions found for', roleName, ':', rolePermissions);
 
       if (rolePermissions && rolePermissions[dtoId]) {
-        console.log(
-          `Permissions for DTO "${dtoId}":`,
-          rolePermissions[dtoId]
-        );
-
         if (rolePermissions[dtoId]?.includes(accessType)) {
-          console.log(`✅ Access granted for ${accessType} on ${dtoId}`);
           return true;
         } else {
-          console.warn(`❌ Access denied for ${accessType} on ${dtoId}`);
-
           if (accessType === 'DELETE') {
             this.canDelete = false;
-            console.log('Set canDelete = false');
           }
 
           if (accessType === 'UPDATE') {
             this.canUpdate = false;
-            console.log('Set canUpdate = false');
           }
         }
-      } else {
-        console.warn(`No permissions found for DTO ID: ${dtoId}`);
       }
-    } else {
-      console.warn('No roleName found in localStorage.');
     }
 
-    console.log('Returning false — access denied.');
     return false;
   }
 
@@ -694,12 +711,11 @@ export class ProductComponent implements OnInit {
       this.forecastEndDate.getTime() - this.forecastStartDate.getTime()
     );
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays + 1; // Include both start and end dates
+    return diffDays + 1;
   }
 
   /**
    * Generate demand forecast
-   * This calls your backend API - replace with your actual endpoint
    */
   generateForecast(): void {
     if (!this.forecastStartDate || !this.forecastEndDate || !this.selectedProduct) {
@@ -714,42 +730,21 @@ export class ProductComponent implements OnInit {
 
     this.loadingForecast = true;
 
-    // Prepare API request parameters
     const params = {
       productId: this.selectedProduct.ProductId,
       startDate: this.formatDate(this.forecastStartDate),
       endDate: this.formatDate(this.forecastEndDate),
     };
 
-    // TODO: Replace this with your actual API call
-    // Example: this.productService.getDemandForecast(params).subscribe(...)
-
-    // For now, using a simulated API call with mock data
+    // TODO: Replace with actual API call
+    // this.productService.getDemandForecast(params).subscribe(...)
     this.simulateForecastAPI(params);
   }
 
   /**
-   * Simulated API call - Replace this with your actual service call
-   * Example actual implementation:
-   *
-   * this.productService.getDemandForecast(params)
-   *   .pipe(
-   *     filter((res) => res.ok),
-   *     map((res) => res.body)
-   *   )
-   *   .subscribe(
-   *     (response) => {
-   *       this.processForecastResponse(response);
-   *       this.loadingForecast = false;
-   *     },
-   *     (error: HttpErrorResponse) => {
-   *       this.handleForecastError(error);
-   *       this.loadingForecast = false;
-   *     }
-   *   );
+   * Simulated API call - Replace with actual service
    */
   private simulateForecastAPI(params: any): void {
-    // Simulate API delay
     setTimeout(() => {
       const mockData = this.generateMockForecastData(
         new Date(params.startDate),
@@ -768,25 +763,20 @@ export class ProductComponent implements OnInit {
   }
 
   /**
-   * Generate mock forecast data for demonstration
-   * Remove this when you integrate with your actual API
+   * Generate mock forecast data
    */
   private generateMockForecastData(startDate: Date, endDate: Date): any[] {
     const data: any[] = [];
     const currentDate = new Date(startDate);
-    const basePrice = this.selectedProduct?.Price || 100;
+    const basePrice = this.getDiscountedPrice(this.selectedProduct!);
 
     while (currentDate <= endDate) {
-      // Generate random demand with some pattern (higher on weekends)
       const isWeekend = currentDate.getDay() === 0 || currentDate.getDay() === 6;
       const baseDemand = isWeekend ? 80 : 50;
       const randomVariation = Math.floor(Math.random() * 30);
       const demand = baseDemand + randomVariation;
 
-      // Calculate revenue
       const revenue = demand * basePrice;
-
-      // Random confidence level
       const confidence = 70 + Math.floor(Math.random() * 25);
 
       data.push({
@@ -803,7 +793,7 @@ export class ProductComponent implements OnInit {
   }
 
   /**
-   * Process the forecast response from API
+   * Process the forecast response
    */
   private processForecastResponse(response: any[]): void {
     this.forecastData = response.map((item) => ({
@@ -817,7 +807,7 @@ export class ProductComponent implements OnInit {
   }
 
   /**
-   * Handle forecast API errors
+   * Handle forecast errors
    */
   private handleForecastError(error: HttpErrorResponse): void {
     this.messageService.add({
@@ -830,7 +820,7 @@ export class ProductComponent implements OnInit {
   }
 
   /**
-   * Update chart data with forecast results
+   * Update chart data
    */
   private updateChartData(): void {
     const labels = this.forecastData.map((item) =>
@@ -930,33 +920,21 @@ export class ProductComponent implements OnInit {
     };
   }
 
-  /**
-   * Get total forecasted demand
-   */
   getTotalForecast(): number {
     return this.forecastData.reduce((sum, item) => sum + item.demand, 0);
   }
 
-  /**
-   * Get average daily demand
-   */
   getAverageForecast(): string {
     if (this.forecastData.length === 0) return '0';
     const avg = this.getTotalForecast() / this.forecastData.length;
     return avg.toFixed(1);
   }
 
-  /**
-   * Get peak demand value
-   */
   getPeakForecast(): number {
     if (this.forecastData.length === 0) return 0;
     return Math.max(...this.forecastData.map((item) => item.demand));
   }
 
-  /**
-   * Get estimated total revenue
-   */
   getEstimatedRevenue(): string {
     const total = this.forecastData.reduce((sum, item) => sum + item.revenue, 0);
     return this.formatNumber(total);
@@ -1017,9 +995,6 @@ export class ProductComponent implements OnInit {
     });
   }
 
-  /**
-   * Format date for display (YYYY-MM-DD)
-   */
   private formatDate(date: Date): string {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -1027,9 +1002,6 @@ export class ProductComponent implements OnInit {
     return `${year}-${month}-${day}`;
   }
 
-  /**
-   * Format date for chart labels (MMM DD)
-   */
   private formatDateForChart(date: Date): string {
     const options: Intl.DateTimeFormatOptions = {
       month: 'short',
@@ -1038,9 +1010,6 @@ export class ProductComponent implements OnInit {
     return date.toLocaleDateString('en-US', options);
   }
 
-  /**
-   * Format large numbers with commas
-   */
   private formatNumber(num: number): string {
     return num.toLocaleString('en-US', {
       maximumFractionDigits: 0,

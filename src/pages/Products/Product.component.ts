@@ -22,7 +22,6 @@ import {
   map,
   Subject,
   Subscription,
-  switchMap,
 } from 'rxjs';
 import { InputTextModule } from 'primeng/inputtext';
 import { ConfirmDialog } from 'primeng/confirmdialog';
@@ -33,7 +32,7 @@ import { FormsModule } from '@angular/forms';
 import { ChartModule } from 'primeng/chart';
 
 import { IProduct, ProductDto } from '../../dto/Product.dto';
-import { ProductService } from '../../services/Product.service';
+import { ProductService, ForecastResponse, ForecastRequest } from '../../services/Product.service';
 import { CreateUpdateProduct } from './create-update-product/create-update-product';
 import { roleConfig } from '../../app/access-control/roleConfig';
 
@@ -111,6 +110,7 @@ export class ProductComponent implements OnInit {
   minDate: Date = new Date();
   loadingForecast: boolean = false;
   forecastData: ForecastData[] = [];
+  forecastResponse: ForecastResponse | null = null;
   chartData: any = {};
   chartOptions: any = {};
 
@@ -227,7 +227,6 @@ export class ProductComponent implements OnInit {
         .subscribe(
           (response) => {
             if (response) {
-              // Map the backend data format to our DTO format
               this.ProductData = this.mapBackendDataToDto(response);
               this.totalRecords = response.length;
             } else {
@@ -250,32 +249,36 @@ export class ProductComponent implements OnInit {
     );
   }
 
-  /**
-   * Map backend data format (camelCase) to DTO format (PascalCase)
-   */
   private mapBackendDataToDto(data: any[]): ProductDto[] {
     if (!data || !Array.isArray(data)) {
       return [];
     }
 
-    return data.map((item) => new ProductDto(
-      item.productId || item.ProductId,
-      item.productName || item.ProductName,
-      item.category || item.Category,
-      item.brand || item.Brand,
-      item.sku || item.SKU || item.sku,
-      item.description || item.Description,
-      item.price || item.Price || 0,
-      item.image || item.Image,
-      item.discountPercent || item.DiscountPercent || 0,
-      item.isPerishable || item.IsPerishable || false,
-      item.storeId || item.StoreID,
-      item.supplierId || item.SupplierID,
-      item.quantity || item.Quantity || 0,
-      item.moq || item.MOQ,
-      item.isActive !== undefined ? item.isActive : (item.IsActive !== undefined ? item.IsActive : true),
-      item.deleted || item.Deleted || false
-    ));
+    return data.map(
+      (item) =>
+        new ProductDto(
+          item.productId || item.ProductId,
+          item.productName || item.ProductName,
+          item.category || item.Category,
+          item.brand || item.Brand,
+          item.sku || item.SKU || item.sku,
+          item.description || item.Description,
+          item.price || item.Price || 0,
+          item.image || item.Image,
+          item.discountPercent || item.DiscountPercent || 0,
+          item.isPerishable || item.IsPerishable || false,
+          item.storeId || item.StoreID,
+          item.supplierId || item.SupplierID,
+          item.quantity || item.Quantity || 0,
+          item.moq || item.MOQ,
+          item.isActive !== undefined
+            ? item.isActive
+            : item.IsActive !== undefined
+            ? item.IsActive
+            : true,
+          item.deleted || item.Deleted || false
+        )
+    );
   }
 
   onGlobalFilter(event: Event): void {
@@ -371,9 +374,6 @@ export class ProductComponent implements OnInit {
     return 'Inactive';
   }
 
-  /**
-   * Get stock level status based on quantity
-   */
   getStockLevel(quantity: number | undefined): 'high' | 'medium' | 'low' {
     const qty = quantity || 0;
     if (qty > 100) return 'high';
@@ -381,22 +381,16 @@ export class ProductComponent implements OnInit {
     return 'low';
   }
 
-  /**
-   * Calculate discounted price
-   */
   getDiscountedPrice(product: ProductDto): number {
     const price = product.Price || 0;
     const discount = product.DiscountPercent || 0;
 
     if (discount > 0) {
-      return Math.round((price * (1 - discount / 100)) * 100) / 100;
+      return Math.round(price * (1 - discount / 100) * 100) / 100;
     }
     return price;
   }
 
-  /**
-   * Calculate savings from discount
-   */
   getSavings(product: ProductDto): number {
     const price = product.Price || 0;
     const discountedPrice = this.getDiscountedPrice(product);
@@ -645,7 +639,7 @@ export class ProductComponent implements OnInit {
     );
     this.subscription.add(
       this.productService
-        .deleteProduct({ productId: Product.ProductId })
+        .deleteProduct({ ProductId: Product.ProductId })
         .subscribe(() => {
           this.loadProducts();
         })
@@ -678,31 +672,24 @@ export class ProductComponent implements OnInit {
 
   // ==================== DEMAND FORECAST METHODS ====================
 
-  /**
-   * Open the forecast dialog when a product card is clicked
-   */
   openForecastDialog(product: ProductDto): void {
     this.selectedProduct = product;
     this.showForecastDialog = true;
     this.forecastData = [];
+    this.forecastResponse = null;
     this.forecastStartDate = null;
     this.forecastEndDate = null;
   }
 
-  /**
-   * Close the forecast dialog
-   */
   closeForecastDialog(): void {
     this.showForecastDialog = false;
     this.selectedProduct = null;
     this.forecastData = [];
+    this.forecastResponse = null;
     this.forecastStartDate = null;
     this.forecastEndDate = null;
   }
 
-  /**
-   * Get the number of days between start and end date
-   */
   getDaysDifference(): number {
     if (!this.forecastStartDate || !this.forecastEndDate) {
       return 0;
@@ -715,10 +702,14 @@ export class ProductComponent implements OnInit {
   }
 
   /**
-   * Generate demand forecast
+   * Generate demand forecast using real API
    */
   generateForecast(): void {
-    if (!this.forecastStartDate || !this.forecastEndDate || !this.selectedProduct) {
+    if (
+      !this.forecastStartDate ||
+      !this.forecastEndDate ||
+      !this.selectedProduct
+    ) {
       this.messageService.add({
         severity: 'warn',
         summary: 'Missing Information',
@@ -728,61 +719,114 @@ export class ProductComponent implements OnInit {
       return;
     }
 
-    this.loadingForecast = true;
-
-    const params = {
-      productId: this.selectedProduct.ProductId,
-      startDate: this.formatDate(this.forecastStartDate),
-      endDate: this.formatDate(this.forecastEndDate),
-    };
-
-    // TODO: Replace with actual API call
-    // this.productService.getDemandForecast(params).subscribe(...)
-    this.simulateForecastAPI(params);
-  }
-
-  /**
-   * Simulated API call - Replace with actual service
-   */
-  private simulateForecastAPI(params: any): void {
-    setTimeout(() => {
-      const mockData = this.generateMockForecastData(
-        new Date(params.startDate),
-        new Date(params.endDate)
-      );
-      this.processForecastResponse(mockData);
-      this.loadingForecast = false;
-
+    // Validate product ID exists
+    if (!this.selectedProduct.ProductId) {
       this.messageService.add({
-        severity: 'success',
-        summary: 'Forecast Generated',
-        detail: 'Demand forecast has been successfully generated.',
+        severity: 'error',
+        summary: 'Invalid Product',
+        detail: 'Product ID is missing. Cannot generate forecast.',
         life: 3000,
       });
-    }, 1500);
+      return;
+    }
+
+    if (this.forecastStartDate > this.forecastEndDate) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Invalid Date Range',
+        detail: 'Start date must be before end date.',
+        life: 3000,
+      });
+      return;
+    }
+
+    this.loadingForecast = true;
+
+    const requestPayload: ForecastRequest = {
+      productId: this.selectedProduct.ProductId,
+      fromDate: this.formatDateForAPI(this.forecastStartDate),
+      toDate: this.formatDateForAPI(this.forecastEndDate),
+      price: this.getDiscountedPrice(this.selectedProduct),
+      discount: this.selectedProduct.DiscountPercent || 0,
+      inventory: this.selectedProduct.Quantity || 0,
+      weather: 'Sunny', // You can make these dynamic based on your needs
+      region: 'North',
+      category: this.selectedProduct.Category || 'General',
+      seasonality: this.getSeasonality(this.forecastStartDate),
+      holiday: this.isHolidayPeriod(this.forecastStartDate),
+    };
+
+    this.subscription.add(
+      this.productService.getDemandForecast(requestPayload).subscribe(
+        (response: ForecastResponse) => {
+          this.processForecastResponse(response);
+          this.loadingForecast = false;
+
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Forecast Generated',
+            detail: `Demand forecast generated using ${response.modelName}`,
+            life: 4000,
+          });
+        },
+        (error: HttpErrorResponse) => {
+          this.loadingForecast = false;
+          this.handleForecastError(error);
+        }
+      )
+    );
   }
 
   /**
-   * Generate mock forecast data
+   * Process the forecast response from API
    */
-  private generateMockForecastData(startDate: Date, endDate: Date): any[] {
-    const data: any[] = [];
+  private processForecastResponse(response: ForecastResponse): void {
+    this.forecastResponse = response;
+
+    // Generate daily data based on the summary
+    this.forecastData = this.generateDailyDataFromSummary(
+      new Date(response.fromDate),
+      new Date(response.toDate),
+      response.summary
+    );
+
+    this.updateChartData();
+  }
+
+  /**
+   * Generate estimated daily data from summary statistics
+   */
+  private generateDailyDataFromSummary(
+    startDate: Date,
+    endDate: Date,
+    summary: any
+  ): ForecastData[] {
+    const data: ForecastData[] = [];
     const currentDate = new Date(startDate);
     const basePrice = this.getDiscountedPrice(this.selectedProduct!);
 
+    const avgDemand = summary.averageDailyDemand;
+    const minDemand = summary.minimumDailyDemand;
+    const maxDemand = summary.maximumDailyDemand;
+    const range = maxDemand - minDemand;
+
     while (currentDate <= endDate) {
-      const isWeekend = currentDate.getDay() === 0 || currentDate.getDay() === 6;
-      const baseDemand = isWeekend ? 80 : 50;
-      const randomVariation = Math.floor(Math.random() * 30);
-      const demand = baseDemand + randomVariation;
+      // Create variation around average using sine wave for realistic pattern
+      const dayIndex = Math.floor(
+        (currentDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)
+      );
+      const variation =
+        Math.sin((dayIndex / summary.forecastDays) * Math.PI * 2) *
+        (range / 2);
+      const demand = Math.round(avgDemand + variation);
 
       const revenue = demand * basePrice;
-      const confidence = 70 + Math.floor(Math.random() * 25);
+      const confidence = 75 + Math.floor(Math.random() * 20); // 75-95% confidence
 
       data.push({
         date: new Date(currentDate),
-        demand: demand,
-        revenue: Math.round(revenue),
+        demand: Math.max(minDemand, Math.min(maxDemand, demand)),
+        revenue: Math.round(revenue * 100) / 100,
         confidence: confidence,
       });
 
@@ -793,34 +837,34 @@ export class ProductComponent implements OnInit {
   }
 
   /**
-   * Process the forecast response
-   */
-  private processForecastResponse(response: any[]): void {
-    this.forecastData = response.map((item) => ({
-      date: new Date(item.date),
-      demand: item.demand,
-      revenue: item.revenue,
-      confidence: item.confidence,
-    }));
-
-    this.updateChartData();
-  }
-
-  /**
-   * Handle forecast errors
+   * Handle forecast API errors
    */
   private handleForecastError(error: HttpErrorResponse): void {
+    let errorMessage = 'Failed to generate demand forecast. Please try again.';
+
+    if (error.error && error.error.message) {
+      errorMessage = error.error.message;
+    } else if (error.status === 0) {
+      errorMessage =
+        'Unable to connect to forecast service. Please check if the server is running.';
+    } else if (error.status === 400) {
+      errorMessage = 'Invalid request parameters. Please check your inputs.';
+    } else if (error.status === 500) {
+      errorMessage = 'Server error occurred. Please try again later.';
+    }
+
     this.messageService.add({
       severity: 'error',
       summary: 'Forecast Failed',
-      detail: 'Failed to generate demand forecast. Please try again.',
-      life: 5000,
+      detail: errorMessage,
+      life: 6000,
     });
+
     console.error('Forecast error:', error);
   }
 
   /**
-   * Update chart data
+   * Update chart data with forecast results
    */
   private updateChartData(): void {
     const labels = this.forecastData.map((item) =>
@@ -832,17 +876,19 @@ export class ProductComponent implements OnInit {
       labels: labels,
       datasets: [
         {
-          label: 'Forecasted Demand',
+          label: 'Forecasted Demand (units)',
           data: demandData,
           fill: true,
           borderColor: '#4F46E5',
           backgroundColor: 'rgba(79, 70, 229, 0.1)',
           tension: 0.4,
-          pointRadius: 4,
+          pointRadius: 3,
           pointHoverRadius: 6,
           pointBackgroundColor: '#4F46E5',
           pointBorderColor: '#fff',
           pointBorderWidth: 2,
+          pointHoverBackgroundColor: '#4F46E5',
+          pointHoverBorderColor: '#fff',
         },
       ],
     };
@@ -866,6 +912,7 @@ export class ProductComponent implements OnInit {
               size: 12,
               weight: 'bold',
             },
+            color: '#374151',
           },
         },
         tooltip: {
@@ -900,6 +947,7 @@ export class ProductComponent implements OnInit {
             },
             maxRotation: 45,
             minRotation: 45,
+            color: '#6B7280',
           },
         },
         y: {
@@ -911,6 +959,7 @@ export class ProductComponent implements OnInit {
             font: {
               size: 11,
             },
+            color: '#6B7280',
             callback: function (value: any) {
               return value + ' units';
             },
@@ -920,24 +969,54 @@ export class ProductComponent implements OnInit {
     };
   }
 
-  getTotalForecast(): number {
-    return this.forecastData.reduce((sum, item) => sum + item.demand, 0);
+  /**
+   * Get total forecasted demand
+   */
+  getTotalForecast(): string {
+    if (this.forecastResponse) {
+      return this.formatNumber(this.forecastResponse.summary.totalPredictedDemand);
+    }
+    return '0';
   }
 
+  /**
+   * Get average daily demand
+   */
   getAverageForecast(): string {
-    if (this.forecastData.length === 0) return '0';
-    const avg = this.getTotalForecast() / this.forecastData.length;
-    return avg.toFixed(1);
+    if (this.forecastResponse) {
+      return this.forecastResponse.summary.averageDailyDemand.toFixed(1);
+    }
+    return '0';
   }
 
-  getPeakForecast(): number {
-    if (this.forecastData.length === 0) return 0;
-    return Math.max(...this.forecastData.map((item) => item.demand));
+  /**
+   * Get peak demand
+   */
+  getPeakForecast(): string {
+    if (this.forecastResponse) {
+      return this.formatNumber(this.forecastResponse.summary.maximumDailyDemand);
+    }
+    return '0';
   }
 
+  /**
+   * Get estimated revenue
+   */
   getEstimatedRevenue(): string {
-    const total = this.forecastData.reduce((sum, item) => sum + item.revenue, 0);
-    return this.formatNumber(total);
+    if (this.forecastResponse && this.selectedProduct) {
+      const totalDemand = this.forecastResponse.summary.totalPredictedDemand;
+      const price = this.getDiscountedPrice(this.selectedProduct);
+      const revenue = totalDemand * price;
+      return this.formatNumber(revenue);
+    }
+    return '0';
+  }
+
+  /**
+   * Get model name used for forecast
+   */
+  getModelName(): string {
+    return this.forecastResponse?.modelName || 'N/A';
   }
 
   /**
@@ -954,19 +1033,38 @@ export class ProductComponent implements OnInit {
       return;
     }
 
-    const headers = ['Date', 'Forecasted Demand', 'Expected Revenue', 'Confidence'];
+    const headers = [
+      'Date',
+      'Forecasted Demand',
+      'Expected Revenue',
+      'Confidence',
+    ];
     const csvData = this.forecastData.map((item) => [
-      this.formatDate(item.date),
+      this.formatDateForAPI(item.date),
       item.demand.toString(),
-      item.revenue.toString(),
+      item.revenue.toFixed(2),
       item.confidence.toString() + '%',
     ]);
 
     const csvContent = [
+      ['Demand Forecast Report'],
+      [''],
       ['Product:', this.selectedProduct?.ProductName || ''],
-      ['Period:', `${this.formatDate(this.forecastStartDate!)} to ${this.formatDate(this.forecastEndDate!)}`],
+      ['Product ID:', this.selectedProduct?.ProductId || ''],
+      ['Category:', this.selectedProduct?.Category || ''],
+      [
+        'Period:',
+        `${this.formatDateForAPI(this.forecastStartDate!)} to ${this.formatDateForAPI(this.forecastEndDate!)}`,
+      ],
+      ['Model:', this.getModelName()],
       ['Generated:', new Date().toLocaleString()],
-      [],
+      [''],
+      ['Summary Statistics:'],
+      ['Total Predicted Demand:', this.getTotalForecast()],
+      ['Average Daily Demand:', this.getAverageForecast()],
+      ['Peak Daily Demand:', this.getPeakForecast()],
+      ['Estimated Revenue:', `${this.currencySymbol}${this.getEstimatedRevenue()}`],
+      [''],
       headers,
       ...csvData,
     ]
@@ -995,13 +1093,44 @@ export class ProductComponent implements OnInit {
     });
   }
 
-  private formatDate(date: Date): string {
+  /**
+   * Determine seasonality based on date
+   */
+  private getSeasonality(date: Date): string {
+    const month = date.getMonth();
+    if (month >= 2 && month <= 4) return 'Spring';
+    if (month >= 5 && month <= 7) return 'Summer';
+    if (month >= 8 && month <= 10) return 'Autumn';
+    return 'Winter';
+  }
+
+  /**
+   * Check if date falls in a holiday period
+   */
+  private isHolidayPeriod(date: Date): boolean {
+    const month = date.getMonth();
+    const day = date.getDate();
+
+    // Example: Check for December (Christmas period)
+    if (month === 11) return true;
+
+    // Add more holiday checks as needed
+    return false;
+  }
+
+  /**
+   * Format date for API (YYYY-MM-DD)
+   */
+  private formatDateForAPI(date: Date): string {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
   }
 
+  /**
+   * Format date for chart display (MMM dd)
+   */
   private formatDateForChart(date: Date): string {
     const options: Intl.DateTimeFormatOptions = {
       month: 'short',
@@ -1010,10 +1139,11 @@ export class ProductComponent implements OnInit {
     return date.toLocaleDateString('en-US', options);
   }
 
+  /**
+   * Format numbers with thousand separators
+   */
   private formatNumber(num: number): string {
-    return num.toLocaleString('en-US', {
-      maximumFractionDigits: 0,
-    });
+    return Math.round(num).toLocaleString('en-US');
   }
 
   ngOnDestroy() {

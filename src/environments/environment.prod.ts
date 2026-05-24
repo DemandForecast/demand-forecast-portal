@@ -6,9 +6,9 @@ export const environment = {
  InventoryUrl: 'https://api.smartstockflow.co.uk/DemandFlow-Service/api',
  forecasturl: 'https://forecast.smartstockflow.co.uk/api/v1/',
  FileManagementUrl: 'https://filemgt.smartstockflow.co.uk/File-Mgt/api/CreateFile',
- 
-  LogoLight: '#',
-  LogoDark: '#',
+
+  LogoLight: 'https://my-fyp-s3-bucket.s3.amazonaws.com/smartstockflow-file-mgt-service/1779625279521302852_smartstockflow.jpeg',
+  LogoDark: 'https://my-fyp-s3-bucket.s3.amazonaws.com/smartstockflow-file-mgt-service/1779625279521302852_smartstockflow.jpeg',
   WORKSPACEID: 'WS680',
   auth0: {
     domain: 'smartstockflow.uk.auth0.com',

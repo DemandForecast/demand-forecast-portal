@@ -3,12 +3,12 @@
       background: transparent;
       border: none;
     }
-    
+
     .p-datatable .p-datatable-thead > tr > th {
       background: transparent;
       border-bottom: 1px solid #e5e7eb;
     }
-    
+
     .p-datatable .p-datatable-tbody > tr > td {
         background: transparent;
       border: none;
@@ -25,11 +25,139 @@
   }
 
   .scrollbar-hide {
-    overflow: auto; 
-    -ms-overflow-style: none; 
+    overflow: auto;
+    -ms-overflow-style: none;
     scrollbar-width: none;
   }
 
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
-  } 
+  }
+
+  /* ═══════════════════════════════════════════════════════════════
+   Dashboard Component Styles
+   Uses Tailwind for layout; custom classes for design tokens
+   ══════════════════════════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap');
+
+.dashboard-root {
+  font-family: 'DM Sans', system-ui, sans-serif;
+  background: #F8FAFC;
+
+  // dark mode background
+  @media (prefers-color-scheme: dark) {
+    background: transparent;
+  }
+}
+
+// ── KPI Cards ────────────────────────────────────────────────────────────────
+
+.kpi-card {
+  @apply relative overflow-hidden bg-white dark:bg-surface-900 rounded-2xl p-5 shadow-sm
+         border border-gray-100 dark:border-gray-700/50
+         transition-all duration-200 hover:shadow-md hover:-translate-y-0.5;
+}
+
+.kpi-icon-wrap {
+  @apply w-11 h-11 rounded-xl flex items-center justify-center;
+}
+
+.kpi-label {
+  @apply text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500;
+}
+
+.kpi-value {
+  @apply text-2xl font-extrabold text-gray-900 dark:text-white mt-0.5;
+}
+
+.kpi-sub {
+  @apply text-xs text-gray-400 dark:text-gray-500 mt-1;
+}
+
+.kpi-accent {
+  @apply absolute bottom-0 left-0 h-1 w-full opacity-60;
+}
+
+// ── Forecast Strip ────────────────────────────────────────────────────────────
+
+.forecast-strip {
+  @apply bg-white dark:bg-surface-900 rounded-xl p-4
+         border border-gray-100 dark:border-gray-700/50
+         border-l-4 shadow-sm
+         transition-all duration-200 hover:shadow-md;
+}
+
+// ── Section Panels ────────────────────────────────────────────────────────────
+
+.card-panel {
+  @apply bg-white dark:bg-surface-900 rounded-2xl p-6
+         shadow-sm border border-gray-100 dark:border-gray-700/50;
+}
+
+.section-title {
+  @apply text-base font-bold text-gray-800 dark:text-white;
+}
+
+// ── Product Row ───────────────────────────────────────────────────────────────
+
+.product-row {
+  @apply flex items-center gap-3 p-3 rounded-xl
+         bg-gray-50 dark:bg-surface-800
+         border border-transparent
+         hover:border-gray-200 dark:hover:border-gray-600
+         transition-all duration-150;
+}
+
+// ── Legend Pill ───────────────────────────────────────────────────────────────
+
+.legend-pill {
+  @apply px-2.5 py-0.5 rounded-full text-xs font-semibold border;
+}
+
+// ── Scrollbar hide ────────────────────────────────────────────────────────────
+
+.scrollbar-hide {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  &::-webkit-scrollbar { display: none; }
+}
+
+// ── PrimeNG overrides ─────────────────────────────────────────────────────────
+
+:host ::ng-deep {
+  .p-selectbutton .p-button {
+    font-size: 0.8rem;
+    padding: 0.4rem 0.9rem;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 600;
+  }
+
+  .p-datatable .p-datatable-thead > tr > th {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #9CA3AF;
+    background: transparent;
+    border-bottom: 1px solid #F3F4F6;
+    padding: 0.6rem 0.75rem;
+  }
+
+  .p-datatable .p-datatable-tbody > tr > td {
+    font-size: 0.85rem;
+    padding: 0.65rem 0.75rem;
+    border-bottom: 1px solid #F9FAFB;
+  }
+
+  .p-button.p-button-text {
+    color: #6366F1;
+    font-weight: 600;
+    font-size: 0.8rem;
+  }
+
+  .p-chart canvas {
+    border-radius: 0.75rem;
+  }
+}
+

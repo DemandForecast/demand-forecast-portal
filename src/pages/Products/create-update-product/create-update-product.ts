@@ -4,25 +4,18 @@ import {
   DynamicDialogConfig,
   DynamicDialogRef,
 } from 'primeng/dynamicdialog';
-import { FloatLabel } from 'primeng/floatlabel';
 import { ConfirmationService, MessageService } from 'primeng/api';
-import { FormArray, FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
+import { FormArray, FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Select } from 'primeng/select';
 import { CommonModule } from '@angular/common';
 import { ButtonModule } from 'primeng/button';
 import { filter, finalize, map, Subscription } from 'rxjs';
 import { InputTextModule } from 'primeng/inputtext';
-import { DatePicker } from 'primeng/datepicker';
-import { PasswordModule } from 'primeng/password';
-import { DropdownModule } from 'primeng/dropdown';
-import { SelectButton } from 'primeng/selectbutton';
-import { Checkbox } from 'primeng/checkbox';
 import { SkeletonModule } from 'primeng/skeleton';
 import { ToastModule } from 'primeng/toast';
 import { FileUploadModule } from 'primeng/fileupload';
 import { InputSwitchModule } from 'primeng/inputswitch';
 import { InputGroupModule } from 'primeng/inputgroup';
-import { InputGroupAddon } from 'primeng/inputgroupaddon';
 
 import { ProductService } from '../../../services/Product.service';
 import { HttpErrorResponse, HttpResponse } from '@angular/common/http';
@@ -35,22 +28,14 @@ import { ProductDto } from '../../../dto/Product.dto';
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    FloatLabel,
     ButtonModule,
     InputTextModule,
-    DatePicker,
-    PasswordModule,
-    SelectButton,
-    DropdownModule,
     Select,
-    Checkbox,
-    FormsModule,
     SkeletonModule,
     ToastModule,
     FileUploadModule,
     InputSwitchModule,
     InputGroupModule,
-    InputGroupAddon
   ],
   templateUrl: './create-update-product.html',
   styleUrl: './create-update-product.scss',

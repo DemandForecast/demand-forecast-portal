@@ -9,9 +9,8 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { ConfirmDialog } from 'primeng/confirmdialog';
 import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
-import { HtmlReportComponent } from './html-report/html-report.component';
-import { ReportService } from '../../services/Report.service';
 import { roleConfig } from '../../app/access-control/roleConfig';
+import { StockReportComponent } from './html-report/html-report.component';
 
 interface DateRange {
   fromDate: Date | null;
@@ -39,7 +38,6 @@ interface DateRange {
   providers: [
     ConfirmationService,
     MessageService,
-    ReportService,
     DialogService,
   ],
 })
@@ -48,7 +46,6 @@ export class ReportComponent implements OnInit, OnDestroy {
   topProductsForecastingDate: Date | null = null;
   lowestStockProductsDates: DateRange = { fromDate: null, toDate: null };
 
-  isLoading: boolean = false;
   roleConfig = roleConfig;
   private dialogRef: DynamicDialogRef | null = null;
 
@@ -70,53 +67,49 @@ export class ReportComponent implements OnInit, OnDestroy {
     this.lowestStockProductsDates = { fromDate: firstDay, toDate: lastDay };
   }
 
-  showStockReportDialog() {
-    this.dialogRef = this.dialogService.open(HtmlReportComponent, {
-      header: 'Stock Report',
-      width: '80%',
+  private openReportDialog(
+    header: string,
+    reportType: string,
+    data: Record<string, unknown>
+  ) {
+    // Close any existing dialog first
+    if (this.dialogRef) {
+      this.dialogRef.close();
+    }
+
+    this.dialogRef = this.dialogService.open(StockReportComponent, {
+      header,
+      width: '90%',
+      style: { 'max-width': '1100px' },
       closable: true,
       modal: true,
       data: {
-        reportType: 'stock-report',
-        title: 'Stock Report',
-        fromDate: this.stockReportDates.fromDate,
-        toDate: this.stockReportDates.toDate,
+        reportType,
+        title: header,
+        ...data,
       },
       appendTo: 'body',
       baseZIndex: 1000,
+    });
+  }
+
+  showStockReportDialog() {
+    this.openReportDialog('Stock Report', 'stock-report', {
+      fromDate: this.stockReportDates.fromDate,
+      toDate: this.stockReportDates.toDate,
     });
   }
 
   showTopProductsForecastingDialog() {
-    this.dialogRef = this.dialogService.open(HtmlReportComponent, {
-      header: 'Top 5 Products Forecasting',
-      width: '80%',
-      closable: true,
-      modal: true,
-      data: {
-        reportType: 'top-products-forecasting',
-        title: 'Top 5 Products Forecasting',
-        singleDate: this.topProductsForecastingDate,
-      },
-      appendTo: 'body',
-      baseZIndex: 1000,
+    this.openReportDialog('Top 5 Products Forecasting', 'top-products-forecasting', {
+      singleDate: this.topProductsForecastingDate,
     });
   }
 
   showLowestStockProductsDialog() {
-    this.dialogRef = this.dialogService.open(HtmlReportComponent, {
-      header: 'Lowest Stock Products Report',
-      width: '80%',
-      closable: true,
-      modal: true,
-      data: {
-        reportType: 'lowest-stock-products',
-        title: 'Lowest Stock Products Report',
-        fromDate: this.lowestStockProductsDates.fromDate,
-        toDate: this.lowestStockProductsDates.toDate,
-      },
-      appendTo: 'body',
-      baseZIndex: 1000,
+    this.openReportDialog('Lowest Stock Products Report', 'lowest-stock-products', {
+      fromDate: this.lowestStockProductsDates.fromDate,
+      toDate: this.lowestStockProductsDates.toDate,
     });
   }
 

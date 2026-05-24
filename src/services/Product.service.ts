@@ -48,6 +48,7 @@ export interface ForecastResponse {
 export class ProductService {
   resourceUrl = environment.InventoryUrl;
   forecastURL = environment.forecasturl;
+  fileManagementUrl = environment.FileManagementUrl;
   private fileUploadUrl = '#';
   //  private fileUploadUrl = 'https://jk-organizations-app1928.hdhd.io/Organizations/api/Upload/File';
 
@@ -124,7 +125,7 @@ findAllProductPaginated(params: any): Observable<HttpResponse<ProductDto[]>> {
 
   // Method for uploading product image
   fileUpload(formData: FormData): Observable<HttpResponse<any>> {
-    return this.http.post(`${this.fileUploadUrl}`, formData, {
+    return this.http.post(`${this.fileManagementUrl}`, formData, {
       observe: 'response',
       reportProgress: true
     });

@@ -8,7 +8,7 @@ export interface IProduct {
   Price?: number;
   Image?: string;
   DiscountPercent?: number;
-  IsPerishable?: boolean;
+  isPerishable?: boolean;
   StoreID?: string;
   SupplierID?: string;
   Quantity?: number;
@@ -29,7 +29,7 @@ export class ProductDto implements IProduct {
     public Image?: string,
     public DiscountPercent?: number,
 
-    public IsPerishable?: boolean,
+    public isPerishable?: boolean,
     public StoreID?: string,
     public SupplierID?: string,
     public Quantity?: number,

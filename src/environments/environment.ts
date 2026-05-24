@@ -3,7 +3,9 @@ export const environment = {
   serverUrl: 'http://127.0.0.1:8080/User-Mgt/api',
   ReportUrl: 'http://127.0.0.1:8886/Reports/api',
   OrganizeUrl: 'http://127.0.0.1:8888/Organizations/api',
- InventoryUrl: 'http://127.0.0.1:8888/DemandFlow-Service/api',
+ InventoryUrl: 'https://api.smartstockflow.co.uk/DemandFlow-Service/api',
+ forecasturl: 'https://forecast.smartstockflow.co.uk/api/v1/',
+ FileManagementUrl: 'https://filemgt.smartstockflow.co.uk/',
 
   LogoLight: 'https://i.postimg.cc/B6R5Y6m6/Chat-GPT-Image-May-16-2026-10-01-48-PM-removebg-preview.png',
   LogoDark: 'https://i.postimg.cc/B6R5Y6m6/Chat-GPT-Image-May-16-2026-10-01-48-PM-removebg-preview.png',

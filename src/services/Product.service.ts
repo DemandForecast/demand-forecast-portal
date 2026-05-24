@@ -7,11 +7,47 @@ import { ProductDto, IProduct } from '../dto/Product.dto';
 type EntityResponseType = HttpResponse<ProductDto>;
 type EntityArrayResponseType = HttpResponse<ProductDto[]>;
 
+// Forecast interfaces
+export interface ForecastRequest {
+  productId: string;
+  fromDate: string;
+  toDate: string;
+  price: number;
+  discount: number;
+  inventory: number;
+  weather?: string;
+  region?: string;
+  category?: string;
+  seasonality?: string;
+  holiday?: boolean;
+}
+
+export interface ForecastSummary {
+  averageDailyDemand: number;
+  forecastDays: number;
+  maximumDailyDemand: number;
+  minimumDailyDemand: number;
+  totalPredictedDemand: number;
+}
+
+export interface ForecastResponse {
+  demandForecast: number;
+  fromDate: string;
+  toDate: string;
+  modelName: string;
+  predictedDate: string;
+  productId: string;
+  summary: ForecastSummary;
+}
+
+
+
 @Injectable({
   providedIn: 'root'
 })
 export class ProductService {
   resourceUrl = environment.InventoryUrl;
+  forecastURL = environment.forecasturl;
   private fileUploadUrl = '#';
   //  private fileUploadUrl = 'https://jk-organizations-app1928.hdhd.io/Organizations/api/Upload/File';
 
@@ -40,7 +76,7 @@ export class ProductService {
 
   deleteProduct(req?: any): Observable<HttpResponse<IProduct>> {
     return this.http.delete<ProductDto>(
-      `${this.resourceUrl}/DeleteProduct`,
+      `${this.resourceUrl}/DeletProduct`,
       { params: req, observe: 'response', headers: this.headers }
     );
   }
@@ -111,4 +147,9 @@ findAllProductPaginated(params: any): Observable<HttpResponse<ProductDto[]>> {
       { params, observe: 'response', headers: this.headers }
     );
   }
+
+    getDemandForecast(request: ForecastRequest): Observable<ForecastResponse> {
+    return this.http.post<ForecastResponse>(`${this.forecastURL}forecast/product`, request);
+  }
+
 }

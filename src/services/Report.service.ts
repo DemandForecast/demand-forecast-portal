@@ -86,10 +86,10 @@ export class ReportService {
     // For actual implementation, replace with real API endpoint
     return this.http.get<SalesData[]>(
       `${this.resourceUrl}/sales-data`,
-      { 
+      {
         params: { fromDate, toDate },
-        observe: 'response', 
-        headers: this.headers 
+        observe: 'response',
+        headers: this.headers
       }
     );
   }

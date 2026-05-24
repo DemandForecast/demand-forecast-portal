@@ -1,237 +1,226 @@
-<div class="container mx-auto px-4">
-  <!-- Header Section -->
-  <div class="flex flex-col xl:flex-row items-center xl:items-start gap-4 justify-between mb-8">
-    <div>
-      <div class="text-3xl leading-8 text-color font-bold">Model Status Dashboard</div>
-      <div class="text-sm text-color-secondary mt-2">Real-time monitoring of AI models and systems</div>
-    </div>
-    <p-button
-      icon="pi pi-refresh"
-      label="Refresh"
-      (click)="refreshData()"
-      severity="secondary"
-      [outlined]="true"
-    />
-  </div>
+<div class="container mx-auto px-2 py-2 space-y-8">
 
-  <!-- Statistics Cards Row -->
-  <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
-    <!-- Total Models Card -->
-    <div class="bg-surface-0 dark:bg-surface-900 rounded-xl p-6 border border-surface shadow-sm">
-      <div class="flex items-center justify-between mb-3">
-        <div class="text-color-secondary text-sm font-medium">Total Models</div>
-        <div class="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
-          <i class="pi pi-box text-blue-600 dark:text-blue-400 text-xl"></i>
+  <ng-container *ngIf="loading">
+    <div class="space-y-6 animate-pulse">
+      <p-skeleton height="3rem" borderRadius="0.75rem"></p-skeleton>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <p-skeleton *ngFor="let i of [1,2,3]" height="10rem" borderRadius="0.75rem"></p-skeleton>
+      </div>
+      <p-skeleton height="6rem" borderRadius="0.75rem"></p-skeleton>
+      <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+        <p-skeleton *ngFor="let i of [1,2,3,4,5,6]" height="2rem" borderRadius="0.5rem"></p-skeleton>
+      </div>
+    </div>
+  </ng-container>
+
+
+  <ng-container *ngIf="!loading && error">
+    <div class="flex flex-col items-center justify-center py-20 gap-4">
+      <div class="w-20 h-20 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
+        <i class="pi pi-exclamation-triangle text-red-500 text-4xl"></i>
+      </div>
+      <h3 class="text-xl font-bold text-color">Service Unreachable</h3>
+      <p class="text-color-secondary text-center max-w-sm text-sm">{{ error }}</p>
+      <p-button label="Try Again" icon="pi pi-refresh" (click)="refreshData()" severity="danger" [outlined]="true" />
+    </div>
+  </ng-container>
+
+
+  <ng-container *ngIf="!loading && !error && data">
+
+
+    <div class="flex flex-col xl:flex-row items-start xl:items-center gap-4 justify-between">
+      <div class="flex items-center gap-4">
+
+        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/30">
+          <i class="pi pi-objects-column text-white text-2xl"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-3 flex-wrap">
+            <h1 class="text-2xl font-extrabold text-color tracking-tight">{{ data.modelInformation.modelName }}</h1>
+            <p-tag
+              [value]="data.service.status"
+              [severity]="serviceStatusSeverity === 'warning' ? 'warn' : serviceStatusSeverity"
+              styleClass="text-xs font-bold px-3 py-1"
+            ></p-tag>
+            <span class="text-xs bg-surface-100 dark:bg-surface-800 text-color-secondary px-2 py-1 rounded-full font-mono">
+              {{ data.modelInformation.modelVersion }}
+            </span>
+          </div>
+          <p class="text-sm text-color-secondary mt-1">
+            Dataset: <span class="font-medium text-color">{{ data.modelInformation.datasetName }}</span>
+            &nbsp;·&nbsp; Target: <span class="font-medium text-color">{{ data.modelInformation.targetVariable }}</span>
+            &nbsp;·&nbsp; Trained <span class="font-medium text-color">{{ data.modelInformation.trainedAt }}</span>
+          </p>
         </div>
       </div>
-      <div class="text-3xl font-bold text-color">{{ totalModels }}</div>
-      <div class="text-xs text-color-secondary mt-2">Across all categories</div>
-    </div>
 
-    <!-- Active Models Card -->
-    <div class="bg-surface-0 dark:bg-surface-900 rounded-xl p-6 border border-surface shadow-sm">
-      <div class="flex items-center justify-between mb-3">
-        <div class="text-color-secondary text-sm font-medium">Active Models</div>
-        <div class="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center">
-          <i class="pi pi-check-circle text-green-600 dark:text-green-400 text-xl"></i>
+      <div class="flex items-center gap-3 flex-wrap">
+        <div class="text-xs text-color-secondary" *ngIf="lastRefreshed">
+          <i class="pi pi-clock mr-1"></i>Updated {{ formatDate(lastRefreshed.toISOString()) }}
         </div>
+        <p-button
+          icon="pi pi-refresh"
+          label="Refresh"
+          (click)="refreshData()"
+          severity="secondary"
+          [outlined]="true"
+          [loading]="isRefreshing"
+        />
       </div>
-      <div class="text-3xl font-bold text-color">{{ activeModels }}</div>
-      <div class="text-xs text-color-secondary mt-2">Currently operational</div>
     </div>
 
-    <!-- Average Uptime Card -->
-    <div class="bg-surface-0 dark:bg-surface-900 rounded-xl p-6 border border-surface shadow-sm">
-      <div class="flex items-center justify-between mb-3">
-        <div class="text-color-secondary text-sm font-medium">Avg Uptime</div>
-        <div class="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-900 flex items-center justify-center">
-          <i class="pi pi-clock text-purple-600 dark:text-purple-400 text-xl"></i>
-        </div>
-      </div>
-      <div class="text-3xl font-bold text-color">{{ averageUptime.toFixed(1) }}%</div>
-      <div class="text-xs text-color-secondary mt-2">System reliability</div>
-    </div>
-
-    <!-- Total Requests Card -->
-    <div class="bg-surface-0 dark:bg-surface-900 rounded-xl p-6 border border-surface shadow-sm">
-      <div class="flex items-center justify-between mb-3">
-        <div class="text-color-secondary text-sm font-medium">Total Requests</div>
-        <div class="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-900 flex items-center justify-center">
-          <i class="pi pi-arrow-right-arrow-left text-orange-600 dark:text-orange-400 text-xl"></i>
-        </div>
-      </div>
-      <div class="text-3xl font-bold text-color">{{ formatNumber(totalRequests) }}</div>
-      <div class="text-xs text-color-secondary mt-2">Requests per hour</div>
-    </div>
-  </div>
-
-  <!-- Search Bar -->
-  <div class="mb-6">
-    <p-iconfield class="w-full md:w-96">
-      <p-inputicon class="pi pi-search"></p-inputicon>
-      <input
-        pInputText
-        type="text"
-        (input)="onSearch($event)"
-        placeholder="Search models by name, category, or description..."
-        class="w-full p-inputtext"
-      />
-    </p-iconfield>
-  </div>
-
-  <!-- Models Grid -->
-  <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
     <div
-      *ngFor="let model of filteredModels"
-      class="bg-surface-0 dark:bg-surface-900 rounded-xl border border-surface shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden"
+      class="flex items-center gap-4 px-5 py-4 rounded-xl border"
+      [ngClass]="allComponentsLoaded
+        ? 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800'
+        : 'bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800'"
     >
-      <!-- Card Header with Color Bar -->
-      <div class="h-2" [style.background-color]="model.color"></div>
-
-      <div class="p-6">
-        <!-- Model Header -->
-        <div class="flex items-start justify-between mb-4">
-          <div class="flex items-center gap-3">
-            <div
-              class="w-12 h-12 rounded-lg flex items-center justify-center text-white text-xl"
-              [style.background-color]="model.color"
-            >
-              <i [class]="'pi ' + model.icon"></i>
-            </div>
-            <div>
-              <h3 class="text-lg font-bold text-color">{{ model.name }}</h3>
-              <div class="text-sm text-color-secondary">{{ model.version }}</div>
-            </div>
-          </div>
-          <p-tag
-            [value]="getStatusLabel(model.status)"
-           
-          ></p-tag>
-        </div>
-
-        <!-- Description -->
-        <p class="text-sm text-color-secondary mb-4 line-clamp-2">
-          {{ model.description }}
+      <div
+        class="w-10 h-10 rounded-full flex items-center justify-center shrink-0"
+        [ngClass]="allComponentsLoaded
+          ? 'bg-emerald-100 dark:bg-emerald-900/50'
+          : 'bg-amber-100 dark:bg-amber-900/50'"
+      >
+        <i
+          class="text-lg"
+          [ngClass]="allComponentsLoaded
+            ? 'pi pi-check-circle text-emerald-600'
+            : 'pi pi-exclamation-circle text-amber-600'"
+        ></i>
+      </div>
+      <div class="flex-1 min-w-0">
+        <p class="font-semibold text-sm text-color">
+          {{ allComponentsLoaded ? 'All Components Loaded' : 'Partial Load' }}
+          <span class="font-normal text-color-secondary ml-2">{{ loadedCount }}/{{ totalComponents }} modules ready</span>
         </p>
-
-        <!-- Category Badge -->
-        <div class="mb-4">
-          <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-surface-100 dark:bg-surface-800 text-color">
-            <i class="pi pi-tag text-xs mr-1"></i>
-            {{ model.category }}
-          </span>
+        <div class="flex flex-wrap gap-x-4 gap-y-1 mt-2">
+          <div
+            *ngFor="let item of loadingStatusItems"
+            class="flex items-center gap-1.5 text-xs"
+            [ngClass]="isComponentLoaded(item.key) ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500'"
+          >
+            <i [class]="'pi text-xs ' + (isComponentLoaded(item.key) ? 'pi-check-circle' : 'pi-times-circle')"></i>
+            {{ item.label }}
+          </div>
         </div>
+      </div>
+      <div class="text-right hidden md:block shrink-0">
+        <div class="text-xs text-color-secondary">Service checked</div>
+        <div class="text-xs font-mono text-color mt-0.5">{{ formatDate(data.service.checkedAt) }}</div>
+      </div>
+    </div>
 
-        <!-- Metrics Grid -->
-        <div class="grid grid-cols-2 gap-4 mb-4">
-          <!-- Accuracy -->
-          <div>
-            <div class="text-xs text-color-secondary mb-1 font-medium">Accuracy</div>
-            <div class="flex items-center gap-2">
-              <div
-                class="text-lg font-bold"
-                [style.color]="getAccuracyColor(model.accuracy)"
-              >
-                {{ model.accuracy }}%
+    <div class="grid grid-cols-3 gap-3">
+      <div
+        *ngFor="let split of [
+          { label: 'Train', value: data.modelInformation.trainingSplit.train, color: 'from-indigo-500 to-indigo-600', bg: 'bg-indigo-50 dark:bg-indigo-950/30', border: 'border-indigo-200 dark:border-indigo-800', icon: 'pi-database', text: 'text-indigo-600 dark:text-indigo-400' },
+          { label: 'Validation', value: data.modelInformation.trainingSplit.validation, color: 'from-purple-500 to-purple-600', bg: 'bg-purple-50 dark:bg-purple-950/30', border: 'border-purple-200 dark:border-purple-800', icon: 'pi-check-square', text: 'text-purple-600 dark:text-purple-400' },
+          { label: 'Test', value: data.modelInformation.trainingSplit.test, color: 'from-sky-500 to-sky-600', bg: 'bg-sky-50 dark:bg-sky-950/30', border: 'border-sky-200 dark:border-sky-800', icon: 'pi-flag', text: 'text-sky-600 dark:text-sky-400' }
+        ]"
+        class="rounded-xl border px-4 py-3 flex items-center gap-3"
+        [ngClass]="split.bg + ' ' + split.border"
+      >
+        <div class="w-8 h-8 rounded-lg bg-gradient-to-br flex items-center justify-center shrink-0" [ngClass]="split.color">
+          <i class="pi text-white text-sm" [ngClass]="split.icon"></i>
+        </div>
+        <div>
+          <div class="text-xs text-color-secondary font-medium">{{ split.label }}</div>
+          <div class="text-xl font-extrabold" [ngClass]="split.text">{{ split.value }}</div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <h2 class="text-base font-bold text-color mb-4 flex items-center gap-2">
+        <i class="pi pi-chart-bar text-color-secondary"></i> Model Accuracy Comparison
+      </h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <div
+          *ngFor="let m of subModels"
+          class="relative rounded-2xl border border-surface bg-surface-0 dark:bg-surface-900 shadow-sm overflow-hidden"
+          [class.ring-2]="m.isBest"
+          [style.--tw-ring-color]="m.accentColor"
+          [ngStyle]="m.isBest ? { 'box-shadow': '0 0 0 2px ' + m.accentColor } : {}"
+        >
+
+          <div class="h-1.5 bg-gradient-to-r" [ngClass]="m.gradientClass"></div>
+
+          <div class="p-5">
+
+            <div class="flex items-start justify-between mb-3">
+              <div class="flex items-center gap-3">
+                <div
+                  class="w-10 h-10 rounded-xl flex items-center justify-center text-white bg-gradient-to-br"
+                  [ngClass]="m.gradientClass"
+                >
+                  <i class="pi text-sm" [ngClass]="m.icon"></i>
+                </div>
+                <div>
+                  <div class="font-bold text-color text-sm leading-tight">{{ m.shortName }}</div>
+                  <div class="text-xs text-color-secondary leading-tight">{{ m.name }}</div>
+                </div>
+              </div>
+              <span
+                *ngIf="m.isBest"
+                class="text-xs font-bold px-2 py-0.5 rounded-full bg-gradient-to-r text-white"
+                [ngClass]="m.gradientClass"
+              >Best</span>
+            </div>
+
+
+            <p class="text-xs text-color-secondary mb-4 leading-relaxed line-clamp-2">{{ m.purpose }}</p>
+
+
+            <div class="mb-4">
+              <div class="flex items-end justify-between mb-1">
+                <span class="text-xs text-color-secondary font-medium">Forecast Accuracy</span>
+                <span class="text-2xl font-extrabold" [style.color]="accuracyColor(m.metrics.forecastAccuracy)">
+                  {{ m.metrics.forecastAccuracy | number: '1.1-1' }}%
+                </span>
+              </div>
+              <p-progressBar
+                [value]="m.metrics.forecastAccuracy"
+                [showValue]="false"
+                [style]="{ height: '8px' }"
+                [color]="accuracyColor(m.metrics.forecastAccuracy)"
+              ></p-progressBar>
+            </div>
+
+
+            <div class="mb-4">
+              <div class="flex items-end justify-between mb-1">
+                <span class="text-xs text-color-secondary font-medium">R² Score</span>
+                <span class="text-base font-bold" [style.color]="r2Color(m.metrics.r2Score)">
+                  {{ m.metrics.r2Score | number: '1.3-3' }}
+                </span>
+              </div>
+              <p-progressBar
+                [value]="r2Percentage(m.metrics.r2Score)"
+                [showValue]="false"
+                [style]="{ height: '6px' }"
+                [color]="r2Color(m.metrics.r2Score)"
+              ></p-progressBar>
+            </div>
+
+            <div class="grid grid-cols-3 gap-2 border-t border-surface pt-4">
+              <div class="text-center">
+                <div class="text-xs text-color-secondary mb-1">MAE</div>
+                <div class="text-sm font-bold text-color">{{ m.metrics.mae | number: '1.1-1' }}</div>
+              </div>
+              <div class="text-center border-x border-surface">
+                <div class="text-xs text-color-secondary mb-1">RMSE</div>
+                <div class="text-sm font-bold text-color">{{ m.metrics.rmse | number: '1.1-1' }}</div>
+              </div>
+              <div class="text-center">
+                <div class="text-xs text-color-secondary mb-1">SMAPE</div>
+                <div class="text-sm font-bold text-color">{{ m.metrics.smape | number: '1.1-1' }}%</div>
               </div>
             </div>
-            <p-progressBar
-              [value]="model.accuracy"
-              [showValue]="false"
-              [style]="{'height': '6px', 'margin-top': '4px'}"
-              [color]="getAccuracyColor(model.accuracy)"
-            ></p-progressBar>
-          </div>
-
-          <!-- Uptime -->
-          <div>
-            <div class="text-xs text-color-secondary mb-1 font-medium">Uptime</div>
-            <div class="flex items-center gap-2">
-              <div
-                class="text-lg font-bold"
-                [style.color]="getUptimeColor(model.uptime)"
-              >
-                {{ model.uptime }}%
-              </div>
-            </div>
-            <p-progressBar
-              [value]="model.uptime"
-              [showValue]="false"
-              [style]="{'height': '6px', 'margin-top': '4px'}"
-              [color]="getUptimeColor(model.uptime)"
-            ></p-progressBar>
-          </div>
-        </div>
-
-        <!-- Performance Metrics -->
-        <div class="border-t border-surface pt-4 space-y-3">
-          <!-- Requests per Hour -->
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-2">
-              <i class="pi pi-arrow-right-arrow-left text-color-secondary text-sm"></i>
-              <span class="text-sm text-color-secondary">Requests/hr</span>
-            </div>
-            <span class="text-sm font-semibold text-color">{{ formatNumber(model.requestsPerHour) }}</span>
-          </div>
-
-          <!-- Response Time -->
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-2">
-              <i class="pi pi-bolt text-color-secondary text-sm"></i>
-              <span class="text-sm text-color-secondary">Response Time</span>
-            </div>
-            <span class="text-sm font-semibold text-color">{{ model.metrics.responseTime }}ms</span>
-          </div>
-
-          <!-- Success Rate -->
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-2">
-              <i class="pi pi-check text-color-secondary text-sm"></i>
-              <span class="text-sm text-color-secondary">Success Rate</span>
-            </div>
-            <span class="text-sm font-semibold text-color">{{ model.metrics.successRate }}%</span>
-          </div>
-
-          <!-- Error Rate -->
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-2">
-              <i class="pi pi-times-circle text-color-secondary text-sm"></i>
-              <span class="text-sm text-color-secondary">Error Rate</span>
-            </div>
-            <span class="text-sm font-semibold text-color">{{ model.metrics.errorRate }}%</span>
-          </div>
-        </div>
-
-        <!-- Footer -->
-        <div class="border-t border-surface mt-4 pt-4">
-          <div class="flex items-center justify-between text-xs text-color-secondary">
-            <div class="flex items-center gap-1">
-              <i class="pi pi-clock"></i>
-              <span>Updated: {{ model.lastUpdated }}</span>
-            </div>
-            <p-button
-              icon="pi pi-eye"
-              [text]="true"
-              size="small"
-              severity="secondary"
-              pTooltip="View Details"
-              tooltipPosition="top"
-            />
           </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- Empty State -->
-  <div
-    *ngIf="filteredModels.length === 0"
-    class="flex flex-col items-center justify-center py-16"
-  >
-    <i class="pi pi-search text-6xl text-surface-400 mb-4"></i>
-    <h3 class="text-xl font-semibold text-color mb-2">No models found</h3>
-    <p class="text-color-secondary text-center max-w-md">
-      No models match your search criteria. Try adjusting your search terms.
-    </p>
-  </div>
+  </ng-container>
 </div>

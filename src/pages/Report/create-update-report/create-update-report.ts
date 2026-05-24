@@ -6,18 +6,12 @@ import {
 } from 'primeng/dynamicdialog';
 import { FloatLabel } from 'primeng/floatlabel';
 import { ConfirmationService, MessageService } from 'primeng/api';
-import { FormArray, FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
+import { FormArray, FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 
-import { Select } from 'primeng/select';
 import { CommonModule } from '@angular/common';
 import { ButtonModule } from 'primeng/button';
 import { filter, finalize, map, Subscription } from 'rxjs';
 import { InputTextModule } from 'primeng/inputtext';
-import { DatePicker } from 'primeng/datepicker';
-import { PasswordModule } from 'primeng/password';
-import { DropdownModule } from 'primeng/dropdown';
-import { SelectButton } from 'primeng/selectbutton';
-import { Checkbox } from 'primeng/checkbox';
 
 
 import {IReport,ReportDto} from "../../../dto/Report.dto";
@@ -26,7 +20,7 @@ import {ReportService} from "../../../services/Report.service";
 @Component({
   selector: 'app-create-update-report',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FloatLabel, ButtonModule, InputTextModule, DatePicker, PasswordModule, SelectButton, DropdownModule, Select, Checkbox, FormsModule],
+  imports: [CommonModule, ReactiveFormsModule, FloatLabel, ButtonModule, InputTextModule],
   templateUrl: './create-update-report.html',
   styleUrl: './create-update-report.scss',
     providers: [

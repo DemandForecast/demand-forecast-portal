@@ -11,8 +11,8 @@ export const environment = {
   LogoDark: 'https://i.postimg.cc/B6R5Y6m6/Chat-GPT-Image-May-16-2026-10-01-48-PM-removebg-preview.png',
   WORKSPACEID: 'WS680',
   auth0: {
-    domain: 'dev-yi2vtudtt52q3bgx.us.auth0.com',
-    clientId: '56bSrJyNAAcsE7Hfs88lBH3BEXYesuwA',
+    domain: 'smartstockflow.uk.auth0.com',
+    clientId: 'CHLJIkepV27LPqcxe1FxWC4uHCwNi2Ol',
     authorizationParams: {
       // audience: 'https://h-pos.us.auth0.com/api/v2/',
       redirect_uri: 'http://localhost:4200/',

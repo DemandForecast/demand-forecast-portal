@@ -72,16 +72,12 @@ export class CreateUpdateProduct implements OnInit, OnDestroy, AfterViewInit {
   currencySymbol: string = '';
 
   categoryOptions: { label: string; value: string }[] = [
-    { label: 'Electronics', value: 'Electronics' },
-    { label: 'Clothing', value: 'Clothing' },
-    { label: 'Food & Beverages', value: 'Food & Beverages' },
-    { label: 'Health & Beauty', value: 'Health & Beauty' },
-    { label: 'Home & Garden', value: 'Home & Garden' },
-    { label: 'Sports & Outdoors', value: 'Sports & Outdoors' },
-    { label: 'Toys & Games', value: 'Toys & Games' },
-    { label: 'Books & Media', value: 'Books & Media' },
-    { label: 'Automotive', value: 'Automotive' },
-    { label: 'Other', value: 'Other' },
+    { label: 'Drinks', value: 'Drinks' },
+    { label: 'Confectionery', value: 'Confectionery' },
+    { label: 'Snacks', value: 'Snacks' },
+    { label: 'Bakery & Bread', value: 'Bakery & Bread' },
+    { label: 'Dairy & Eggs', value: 'Dairy & Eggs' },
+    { label: 'Grocery', value: 'Grocery' },
   ];
 
   @ViewChild('fileInput') fileInput!: ElementRef;

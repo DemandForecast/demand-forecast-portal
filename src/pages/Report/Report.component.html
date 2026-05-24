@@ -30,11 +30,10 @@
     </div>
   </ng-template>
 </p-confirmdialog>
+
 <div class="container mx-auto px-4">
   <!-- Header Section -->
-  <div
-    class="flex flex-col xl:flex-row items-center xl:items-start gap-2 justify-between"
-  >
+  <div class="flex flex-col xl:flex-row items-center xl:items-start gap-2 justify-between">
     <div>
       <div class="text-2xl leading-8 text-color font-medium">Reports</div>
     </div>
@@ -42,6 +41,7 @@
 
   <!-- Reports Grid Layout -->
   <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+
     <!-- Stock Report -->
     <div class="bg-surface-0 dark:bg-surface-900 rounded-xl shadow-md p-6">
       <h3 class="text-xl font-medium mb-4 text-color flex items-center gap-2">
@@ -50,9 +50,7 @@
       </h3>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label class="block text-sm font-medium mb-1 text-color"
-            >From Date:</label
-          >
+          <label class="block text-sm font-medium mb-1 text-color">From Date:</label>
           <p-calendar
             class="w-full"
             [(ngModel)]="stockReportDates.fromDate"
@@ -60,9 +58,7 @@
           ></p-calendar>
         </div>
         <div>
-          <label class="block text-sm font-medium mb-1 text-color"
-            >To Date:</label
-          >
+          <label class="block text-sm font-medium mb-1 text-color">To Date:</label>
           <p-calendar
             class="w-full"
             [(ngModel)]="stockReportDates.toDate"
@@ -76,7 +72,6 @@
           icon="pi pi-file-pdf"
           class="mr-2"
           (click)="showStockReportDialog()"
-          [loading]="isLoading"
         ></p-button>
         <p-button
           label="Download Excel"
@@ -89,10 +84,7 @@
     <!-- Top 5 Products Forecasting Report -->
     <div class="bg-surface-0 dark:bg-surface-900 rounded-xl shadow-md p-6">
       <h3 class="text-xl font-medium mb-4 text-color flex items-center gap-2">
-        <i
-          class="pi pi-chart-line text-green-500"
-          style="font-size: 1.25rem"
-        ></i>
+        <i class="pi pi-chart-line text-green-500" style="font-size: 1.25rem"></i>
         <span>Top 5 Products Forecasting</span>
       </h3>
       <div>
@@ -109,7 +101,6 @@
           icon="pi pi-file-pdf"
           class="mr-2"
           (click)="showTopProductsForecastingDialog()"
-          [loading]="isLoading"
         ></p-button>
         <p-button
           label="Download Excel"
@@ -122,17 +113,12 @@
     <!-- Lowest Stock Products Report -->
     <div class="bg-surface-0 dark:bg-surface-900 rounded-xl shadow-md p-6">
       <h3 class="text-xl font-medium mb-4 text-color flex items-center gap-2">
-        <i
-          class="pi pi-arrow-circle-down text-red-500"
-          style="font-size: 1.25rem"
-        ></i>
+        <i class="pi pi-arrow-circle-down text-red-500" style="font-size: 1.25rem"></i>
         <span>Lowest Stock Products Report</span>
       </h3>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label class="block text-sm font-medium mb-1 text-color"
-            >From Date:</label
-          >
+          <label class="block text-sm font-medium mb-1 text-color">From Date:</label>
           <p-calendar
             class="w-full"
             [(ngModel)]="lowestStockProductsDates.fromDate"
@@ -140,9 +126,7 @@
           ></p-calendar>
         </div>
         <div>
-          <label class="block text-sm font-medium mb-1 text-color"
-            >To Date:</label
-          >
+          <label class="block text-sm font-medium mb-1 text-color">To Date:</label>
           <p-calendar
             class="w-full"
             [(ngModel)]="lowestStockProductsDates.toDate"
@@ -156,7 +140,6 @@
           icon="pi pi-file-pdf"
           class="mr-2"
           (click)="showLowestStockProductsDialog()"
-          [loading]="isLoading"
         ></p-button>
         <p-button
           label="Download Excel"
@@ -165,5 +148,6 @@
         ></p-button>
       </div>
     </div>
+
   </div>
 </div>

@@ -11,8 +11,8 @@ export const environment = {
   LogoDark: '#',
   WORKSPACEID: 'WS680',
   auth0: {
-    domain: 'dev-yi2vtudtt52q3bgx.us.auth0.com',
-    clientId: '56bSrJyNAAcsE7Hfs88lBH3BEXYesuwA',
+    domain: 'smartstockflow.uk.auth0.com',
+    clientId: 'CHLJIkepV27LPqcxe1FxWC4uHCwNi2Ol',
     authorizationParams: {
       // audience: 'https://h-pos.us.auth0.com/api/v2/',
       redirect_uri: 'https://smartstockflow.co.uk',

@@ -126,7 +126,7 @@ export class ProductComponent implements OnInit {
   }
 
   ngOnInit() {
-    const currency = localStorage.getItem('selectedCurrency') || 'LKR';
+    const currency = 'GBP';
     this.currencySymbol = this.getCurrencySymbol(currency);
     this.subscription.add(
       this.searchSubject

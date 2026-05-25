@@ -75,7 +75,7 @@
       </div>
       <div class="mt-4">
         <p class="kpi-label">Stock Value</p>
-        <p class="kpi-value">{{ currencySymbol }} {{ formatCurrency(stockData.value) }}</p>
+        <p class="kpi-value"> £ {{ formatCurrency(stockData.value) }}</p>
         <p class="kpi-sub">{{ stockData.items }} tracked items</p>
       </div>
     </div>
@@ -90,7 +90,7 @@
       </div>
       <div class="mt-4">
         <p class="kpi-label">Wastage Loss</p>
-        <p class="kpi-value">{{ currencySymbol }} {{ formatCurrency(wastageData.cost) }}</p>
+        <p class="kpi-value"> £ {{ formatCurrency(wastageData.cost) }}</p>
         <p class="kpi-sub">{{ wastageData.items }} items wasted</p>
       </div>
     </div>

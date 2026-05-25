@@ -123,8 +123,8 @@ export class DashboardComponent implements OnInit {
   selectedTime: string = 'Monthly';
   timeOptions: string[] = ['Weekly', 'Monthly', 'Yearly'];
   dateRange: Date[] = [];
-  currencySymbol: string = 'LKR';
-  currencyFormat: string = 'en-LK';
+  currencySymbol: string = '£';
+currencyFormat: string = 'en-GB';
 
   salesData  = { annual: 0, daily: 0 };
   profitData = { annual: 0, daily: 0 };

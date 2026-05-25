@@ -128,7 +128,7 @@ export class StockReportComponent implements OnInit {
   }
 
   formatCurrency(val: number): string {
-    return `$${val.toFixed(2)}`;
+    return `£ ${val.toFixed(2)}`;
   }
 
   getStockStatus(qty: number): { label: string; class: string } {

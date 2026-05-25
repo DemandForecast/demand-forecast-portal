@@ -1,18 +1,13 @@
-<div class="flex-1 h-full max-h-screen overflow-auto pb-4 scrollbar-hide dashboard-root">
+<div class="flex-1 h-full max-h-screen overflow-auto pb-6 scrollbar-hide dashboard-root">
 
   <!-- ═══════════════════════════════ HEADER ════════════════════════════════ -->
-  <div class="flex flex-wrap gap-4 items-center justify-between p-1 mb-1">
+  <div class="header-bar flex flex-wrap gap-4 items-center justify-between p-1 mb-2">
     <div>
-      <p class="text-xs font-semibold uppercase tracking-widest text-indigo-500 mb-1">SmartStockFlow</p>
-      <h1 class="text-2xl font-bold text-gray-900 dark:text-white leading-tight">
-        Demand Forecasting Dashboard
-      </h1>
-      <p class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
-        Powered by Hybrid LSTM-XGBoost Ensemble · Updated
-      </p>
+      <p class="brand-label">SmartStockFlow</p>
+      <h1 class="page-title">Demand Forecasting Dashboard</h1>
+      <p class="page-sub">Powered by Hybrid LSTM-XGBoost Ensemble · Updated live</p>
     </div>
 
-    <!-- Controls -->
     <div class="flex flex-wrap items-center gap-3">
       <p-selectbutton
         [(ngModel)]="selectedTime"
@@ -31,7 +26,7 @@
         label="Reports"
         icon="pi pi-download"
         iconPos="right"
-        styleClass="p-button-sm"
+        styleClass="p-button-sm btn-primary"
         (onClick)="navigateToReports()"
       ></p-button>
     </div>
@@ -41,55 +36,63 @@
   <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-5">
 
     <!-- Products Count -->
-    <div class="kpi-card group">
-      <div class="kpi-icon-wrap bg-indigo-50 dark:bg-indigo-900/30">
-        <i class="pi pi-box text-indigo-600 dark:text-indigo-400 text-xl"></i>
+    <div class="kpi-card kpi-indigo">
+      <div class="kpi-top">
+        <div class="kpi-icon-wrap">
+          <i class="pi pi-box kpi-icon"></i>
+        </div>
+        <span class="kpi-badge">Active</span>
       </div>
-      <div class="mt-3">
+      <div class="mt-4">
         <p class="kpi-label">Total Products</p>
         <p class="kpi-value">{{ count?.count ?? 0 }}</p>
         <p class="kpi-sub">Active SKUs in system</p>
       </div>
-      <div class="kpi-accent bg-indigo-500"></div>
     </div>
 
     <!-- Total Stock -->
-    <div class="kpi-card group">
-      <div class="kpi-icon-wrap bg-emerald-50 dark:bg-emerald-900/30">
-        <i class="pi pi-warehouse text-emerald-600 dark:text-emerald-400 text-xl"></i>
+    <div class="kpi-card kpi-emerald">
+      <div class="kpi-top">
+        <div class="kpi-icon-wrap">
+          <i class="pi pi-warehouse kpi-icon"></i>
+        </div>
+        <span class="kpi-badge">Live</span>
       </div>
-      <div class="mt-3">
+      <div class="mt-4">
         <p class="kpi-label">Total Stock</p>
         <p class="kpi-value">{{ totalStock?.totalStock ?? 0 }}</p>
         <p class="kpi-sub">Units in inventory</p>
       </div>
-      <div class="kpi-accent bg-emerald-500"></div>
     </div>
 
     <!-- Stock Value -->
-    <div class="kpi-card group">
-      <div class="kpi-icon-wrap bg-violet-50 dark:bg-violet-900/30">
-        <i class="pi pi-dollar text-violet-600 dark:text-violet-400 text-xl"></i>
+    <div class="kpi-card kpi-violet">
+      <div class="kpi-top">
+        <div class="kpi-icon-wrap">
+          <i class="pi pi-dollar kpi-icon"></i>
+        </div>
+        <span class="kpi-badge">Valued</span>
       </div>
-      <div class="mt-3">
+      <div class="mt-4">
         <p class="kpi-label">Stock Value</p>
-        <p class="kpi-value text-xl">{{ currencySymbol }} {{ formatCurrency(stockData.value) }}</p>
+        <p class="kpi-value">{{ currencySymbol }} {{ formatCurrency(stockData.value) }}</p>
         <p class="kpi-sub">{{ stockData.items }} tracked items</p>
       </div>
-      <div class="kpi-accent bg-violet-500"></div>
     </div>
 
     <!-- Wastage -->
-    <div class="kpi-card group">
-      <div class="kpi-icon-wrap bg-rose-50 dark:bg-rose-900/30">
-        <i class="pi pi-exclamation-triangle text-rose-600 dark:text-rose-400 text-xl"></i>
+    <div class="kpi-card kpi-rose">
+      <div class="kpi-top">
+        <div class="kpi-icon-wrap">
+          <i class="pi pi-exclamation-triangle kpi-icon"></i>
+        </div>
+        <span class="kpi-badge kpi-badge-warn">Alert</span>
       </div>
-      <div class="mt-3">
+      <div class="mt-4">
         <p class="kpi-label">Wastage Loss</p>
-        <p class="kpi-value text-xl">{{ currencySymbol }} {{ formatCurrency(wastageData.cost) }}</p>
+        <p class="kpi-value">{{ currencySymbol }} {{ formatCurrency(wastageData.cost) }}</p>
         <p class="kpi-sub">{{ wastageData.items }} items wasted</p>
       </div>
-      <div class="kpi-accent bg-rose-500"></div>
     </div>
   </div>
 
@@ -98,25 +101,25 @@
     <div
       *ngFor="let fc of forecastData; let i = index"
       class="forecast-strip"
-      [style.border-left-color]="getProductColor(i).border"
+      [style.--strip-color]="getProductColor(i).border"
     >
-      <div class="flex items-center gap-2 mb-2">
+      <div class="flex items-center gap-3 mb-3">
         <img
           [src]="getProductImage({ productId: fc.productId, productName: fc.productId, category: '', brand: '', price: 0, currentInventory: 0, image: fc.image }, i)"
           [alt]="fc.productId"
-          class="w-9 h-9 rounded-lg object-cover border border-gray-200 dark:border-gray-700 shadow-sm"
-          (error)="$any($event.target).src = 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=64&h=64&fit=crop'"
+          class="strip-img"
+          (error)="$any($event.target).src = 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=80&h=80&fit=crop'"
         />
-        <div>
-          <p class="text-xs font-bold text-gray-800 dark:text-gray-100">{{ fc.productId }}</p>
+        <div class="min-w-0">
+          <p class="text-xs font-bold text-gray-800 dark:text-gray-100 truncate">{{ fc.productId }}</p>
           <p class="text-xs text-gray-400">{{ fc.fromDate | date:'MMM d' }} – {{ fc.toDate | date:'MMM d' }}</p>
         </div>
       </div>
-      <p class="text-lg font-extrabold text-gray-900 dark:text-white">
+      <p class="text-xl font-extrabold text-gray-900 dark:text-white leading-none">
         {{ fc.summary.totalPredictedDemand | number:'1.0-0' }}
-        <span class="text-xs font-normal text-gray-400"> units</span>
+        <span class="text-xs font-normal text-gray-400 ml-0.5">units</span>
       </p>
-      <div class="flex items-center justify-between mt-1">
+      <div class="flex items-center justify-between mt-2">
         <p class="text-xs text-gray-500">Avg <span class="font-semibold text-gray-700 dark:text-gray-300">{{ fc.summary.averageDailyDemand | number:'1.1-1' }}/day</span></p>
         <span [class]="getTrendClass(fc)" class="text-base">{{ getTrendArrow(fc) }}</span>
       </div>
@@ -126,7 +129,7 @@
   <!-- Skeleton strips while loading -->
   <div *ngIf="forecastLoading" class="mt-5 grid grid-cols-1 sm:grid-cols-5 gap-3">
     <div *ngFor="let _ of [1,2,3,4,5]" class="forecast-strip">
-      <p-skeleton height="2rem" styleClass="mb-2"></p-skeleton>
+      <p-skeleton height="2.5rem" styleClass="mb-2 rounded-xl"></p-skeleton>
       <p-skeleton height="1.2rem" width="60%" styleClass="mb-1"></p-skeleton>
       <p-skeleton height="1rem" width="80%"></p-skeleton>
     </div>
@@ -137,12 +140,8 @@
     <div class="flex flex-wrap items-start justify-between mb-5 gap-3">
       <div>
         <h2 class="section-title">Top 5 Products — Daily Demand Forecast</h2>
-        <p class="text-xs text-gray-400 mt-0.5">
-          Model: Hybrid LSTM-XGBoost Ensemble ·
-
-        </p>
+        <p class="section-sub">Model: Hybrid LSTM-XGBoost Ensemble</p>
       </div>
-      <!-- Legend pills -->
       <div class="flex flex-wrap gap-2" *ngIf="forecastData.length">
         <span
           *ngFor="let fc of forecastData; let i = index"
@@ -156,7 +155,6 @@
       </div>
     </div>
 
-    <!-- Chart or states -->
     <ng-container *ngIf="!forecastLoading && !forecastError && chartData">
       <p-chart type="line" [data]="chartData" [options]="chartOptions" height="22rem"></p-chart>
     </ng-container>
@@ -183,7 +181,10 @@
     <!-- Product Stock Table with images -->
     <div class="card-panel">
       <div class="flex items-center justify-between mb-5">
-        <h2 class="section-title">Product Stock Details</h2>
+        <div>
+          <h2 class="section-title">Product Stock Details</h2>
+          <p class="section-sub">Top 5 by inventory level</p>
+        </div>
         <p-button label="View All" icon="pi pi-arrow-right" iconPos="right"
           styleClass="p-button-text p-button-sm" (onClick)="navigateToProduct()">
         </p-button>
@@ -195,43 +196,44 @@
             *ngFor="let product of top5Products; let i = index"
             class="product-row"
           >
-            <!-- Image -->
+            <!-- Medium image -->
             <div class="relative flex-shrink-0">
               <img
                 [src]="getProductImage(product, i)"
                 [alt]="product.productName || product.productId"
-                class="w-12 h-12 rounded-xl object-cover shadow-sm border border-gray-100 dark:border-gray-700"
-                (error)="$any($event.target).src = 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=64&h=64&fit=crop'"
+                class="product-img"
+                (error)="$any($event.target).src = 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=80&h=80&fit=crop'"
               />
-              <!-- colour dot -->
               <span
-                class="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full border-2 border-white shadow"
+                class="absolute -top-1 -right-1 w-4 h-4 rounded-full border-2 border-white shadow-md"
                 [style.background]="getProductColor(i).border"
               ></span>
             </div>
 
             <!-- Info -->
             <div class="flex-1 min-w-0">
-              <p class="text-sm font-semibold text-gray-900 dark:text-white truncate">
+              <p class="text-sm font-bold text-gray-900 dark:text-white truncate">
                 {{ product.productName || product.productId }}
               </p>
-              <p class="text-xs text-gray-400">{{ product.productId }} · {{ product.category || product.brand || '—' }}</p>
+              <p class="text-xs text-gray-400 mt-0.5">{{ product.productId }}</p>
+              <p class="text-xs text-gray-400">{{ product.category || product.brand || '—' }}</p>
             </div>
 
             <!-- Stock + Forecast -->
             <div class="text-right flex-shrink-0">
-              <p class="text-sm font-bold text-gray-800 dark:text-gray-100">{{ product.currentInventory }} <span class="text-xs font-normal text-gray-400">units</span></p>
+              <p class="text-base font-extrabold text-gray-800 dark:text-gray-100">
+                {{ product.currentInventory }}
+                <span class="text-xs font-normal text-gray-400">units</span>
+              </p>
               <ng-container *ngIf="getForecastForProduct(product.productId) as fc">
                 <p class="text-xs text-gray-400 mt-0.5">
-                  Forecast: <span class="font-semibold" [style.color]="getProductColor(i).border">{{ fc.summary.totalPredictedDemand | number:'1.0-0' }}</span>
+                  Forecast: <span class="font-bold" [style.color]="getProductColor(i).border">{{ fc.summary.totalPredictedDemand | number:'1.0-0' }}</span>
                 </p>
               </ng-container>
+              <span [class]="getStockStatusClass(product.currentInventory)" class="mt-1.5 inline-block">
+                {{ getStockStatus(product.currentInventory) }}
+              </span>
             </div>
-
-            <!-- Status badge -->
-            <span [class]="getStockStatusClass(product.currentInventory)" class="ml-2 flex-shrink-0">
-              {{ getStockStatus(product.currentInventory) }}
-            </span>
           </div>
         </ng-container>
 
@@ -247,7 +249,10 @@
     <!-- Pie Chart with forecast stats -->
     <div class="card-panel">
       <div class="flex items-center justify-between mb-5">
-        <h2 class="section-title">Stock Distribution</h2>
+        <div>
+          <h2 class="section-title">Stock Distribution</h2>
+          <p class="section-sub">By current inventory units</p>
+        </div>
         <p-button label="View All" icon="pi pi-arrow-right" iconPos="right"
           styleClass="p-button-text p-button-sm" (onClick)="navigateToProduct()">
         </p-button>
@@ -257,19 +262,19 @@
 
       <!-- Forecast min/max table -->
       <div *ngIf="forecastData.length" class="mt-4 border-t border-gray-100 dark:border-gray-700 pt-4">
-        <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Daily Demand Ranges</p>
-        <div class="space-y-2">
-          <div *ngFor="let fc of forecastData; let i = index" class="flex items-center gap-2 text-xs">
+        <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Daily Demand Ranges</p>
+        <div class="space-y-2.5">
+          <div *ngFor="let fc of forecastData; let i = index" class="flex items-center gap-2.5 text-xs">
             <span class="w-2.5 h-2.5 rounded-full flex-shrink-0" [style.background]="getProductColor(i).border"></span>
-            <span class="text-gray-600 dark:text-gray-300 font-medium w-16">{{ fc.productId }}</span>
-            <div class="flex-1 bg-gray-100 dark:bg-gray-700 rounded-full h-1.5 overflow-hidden">
+            <span class="text-gray-600 dark:text-gray-300 font-semibold w-16">{{ fc.productId }}</span>
+            <div class="flex-1 bg-gray-100 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
               <div
-                class="h-1.5 rounded-full"
+                class="h-2 rounded-full transition-all duration-500"
                 [style.background]="getProductColor(i).border"
                 [style.width.%]="(fc.summary.averageDailyDemand / fc.summary.maximumDailyDemand) * 100"
               ></div>
             </div>
-            <span class="text-gray-500 w-20 text-right">
+            <span class="text-gray-500 w-24 text-right tabular-nums">
               {{ fc.summary.minimumDailyDemand | number:'1.0-0' }}–{{ fc.summary.maximumDailyDemand | number:'1.0-0' }}/day
             </span>
           </div>
@@ -277,5 +282,5 @@
       </div>
     </div>
 
-  </div><!-- /bottom grid -->
+  </div>
 </div>
